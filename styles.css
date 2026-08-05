@@ -75,3 +75,56 @@ h1{margin:10px 0 7px;font-size:35px;line-height:1.04;letter-spacing:-.025em}
 .toast{position:fixed;right:18px;bottom:18px;z-index:400;padding:12px 14px;border-radius:12px;background:#111827;color:#fff;opacity:0;transform:translateY(10px);transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
 @media(max-width:1100px){.hero{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.calendar-grid{grid-template-columns:repeat(2,1fr)}.disc-grid{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}}
 @media(max-width:700px){.shell{padding:9px}.sticky{position:static}.hero{padding:19px 17px}h1{font-size:27px}.countdown{align-items:flex-start}.cd-num{font-size:38px}.stats{grid-template-columns:repeat(2,1fr)}.calendar-grid,.disc-grid,.settings-grid{grid-template-columns:1fr}.panel{padding:13px}.day{min-height:52px}.trow{grid-template-columns:72px 12px 1fr}.btn{flex:1}.week-view{grid-template-columns:56px repeat(7,150px)}}
+
+
+/* ===== V5: gráficos, status automático e próximos por disciplina ===== */
+.stats .card{appearance:none;text-align:left;color:var(--ink)}
+.status-legend{display:flex;gap:16px;flex-wrap:wrap;margin:4px 0 14px;color:var(--muted);font-size:12px}
+.status-key{display:flex;align-items:center;gap:6px}.status-swatch{width:10px;height:10px;border-radius:3px}
+.chart-grid{display:grid;grid-template-columns:.75fr 1.25fr;gap:16px;margin:16px 0}
+.chart-panel{min-height:310px}
+.donut-wrap{display:grid;place-items:center;padding:10px 0 2px}
+.donut{
+  width:210px;height:210px;border-radius:50%;display:grid;place-items:center;
+  position:relative;box-shadow:inset 0 0 0 1px var(--line)
+}
+.donut:after{content:"";width:128px;height:128px;border-radius:50%;background:var(--panel);position:absolute}
+.donut-center{position:relative;z-index:1;text-align:center}.donut-center strong{display:block;font-size:32px}.donut-center span{font-size:12px;color:var(--muted)}
+.chart-list{display:grid;gap:13px}
+.chart-row{display:grid;grid-template-columns:130px 1fr 72px;gap:10px;align-items:center}
+.chart-name{font-weight:760;font-size:13px}
+.stacked{height:18px;background:var(--soft);border-radius:999px;overflow:hidden;display:flex}
+.seg-past{background:#10b981;height:100%}.seg-future{background:#f59e0b;height:100%}
+.chart-values{text-align:right;font:750 11px ui-monospace;color:var(--muted)}
+.discipline-chart{display:grid;gap:11px}
+.discipline-chart .chart-row{grid-template-columns:150px 1fr 72px}
+.next-disc-section{margin:16px 0}
+.next-disc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.next-disc-card{
+  border:1px solid var(--line);border-top:5px solid var(--c);background:var(--panel);
+  color:var(--ink);border-radius:16px;padding:15px;text-align:left;cursor:pointer;
+  box-shadow:var(--shadow);transition:transform .15s ease,border-color .15s ease
+}
+.next-disc-card:hover{transform:translateY(-2px);border-color:var(--c)}
+.next-disc-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.next-disc-name{font-weight:850}.next-disc-days{font-size:22px;font-weight:950;white-space:nowrap}
+.next-disc-unit{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:right}
+.next-disc-title{font-size:13px;margin-top:12px;font-weight:700}.next-disc-meta{font-size:12px;color:var(--muted);margin-top:5px}.next-disc-link{font-size:12px;font-weight:800;margin-top:12px;color:var(--c)}
+.auto-note{font-size:12px;color:var(--muted);margin-top:9px}
+.week-board{display:grid;grid-template-columns:repeat(7,minmax(180px,1fr));gap:10px;overflow:auto;padding-bottom:5px}
+.week-column{border:1px solid var(--line);border-radius:15px;background:var(--panel);min-height:260px;padding:11px}
+.week-column.today{outline:2px solid var(--ink)}
+.week-column-head{font-weight:850;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:8px}
+.week-column-head small{display:block;color:var(--muted);font-weight:600;margin-top:3px}
+.week-empty{color:var(--muted);font-size:12px;font-style:italic}
+.week-event{cursor:pointer}
+@media(max-width:1100px){
+  .chart-grid{grid-template-columns:1fr}
+  .next-disc-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:700px){
+  .next-disc-grid{grid-template-columns:1fr}
+  .chart-row,.discipline-chart .chart-row{grid-template-columns:105px 1fr 62px}
+  .donut{width:190px;height:190px}
+  .week-board{grid-template-columns:repeat(7,165px)}
+}

@@ -1,10 +1,10 @@
 {
   "meta": {
-    "title": "Calendário Premium — Turma A",
-    "subtitle": "Medicina UFMG · 6º período · 2026/2",
+    "title": "Calendário Medicina UFMG — 6º Período — 2026/2",
+    "subtitle": "Turma A · Medicina UFMG · Ciclo Clínico",
     "semesterStart": "2026-08-03",
     "semesterEnd": "2026-12-04",
-    "version": "4.0 Premium Máximo — atualização forçada"
+    "version": "5.0 Premium — gráficos e contagens precisas"
   },
   "disciplines": {
     "AP": {
@@ -79,7 +79,7 @@
       "date": "2026-10-01",
       "disc": "AP",
       "label": "2ª chamada — Genital e Urinário",
-      "time": "sex, 12h–13h30"
+      "time": "qui, 12h–13h30"
     },
     {
       "date": "2026-10-01",

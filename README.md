@@ -1,8 +1,18 @@
-# Calendário Premium Máximo — Turma A — 2026/2
+# Calendário Medicina UFMG — 6º Período — 2026/2 — V5
+
+## Novidades
+- Contagem regressiva por dias de calendário, sem o erro de “amanhã = 2 dias”.
+- Contagem geral do próximo evento.
+- Um cartão clicável para o próximo evento de cada disciplina.
+- Gráfico geral de atividades concluídas pela data e pendentes.
+- Gráfico por tipo: avaliações, GDs, ambulatórios e aulas/ATs.
+- Gráfico por disciplina.
+- Métricas “Pendentes” e “Concluídas” calculadas automaticamente pelas datas.
+- Cache V5 com atualização pela internet primeiro, reduzindo o risco de visualizar versão antiga.
+- Novo nome: Calendário Medicina UFMG — 6º Período — 2026/2.
 
 ## Arquivos para enviar ao GitHub
 Envie todos para a raiz do repositório:
-
 - index.html
 - styles.css
 - app.js
@@ -11,23 +21,4 @@ Envie todos para a raiz do repositório:
 - sw.js
 - icon.svg
 
-## Recursos
-- Dashboard e contagem regressiva
-- Próximas avaliações
-- Semanas mais pesadas
-- Calendário mensal clicável
-- Painel lateral por dia
-- Visualização semanal
-- Agenda cronológica
-- Disciplinas
-- Favoritos
-- Marcar eventos como concluídos
-- Busca e filtros
-- Modo escuro
-- Exportação ICS completa ou por matéria
-- Alertas de 5 dias e 1 dia
-- PWA instalável no iPhone
-- Funcionamento offline após primeiro acesso
-
-## Publicação
-Settings → Pages → Deploy from a branch → main → /(root)
+Substitua os arquivos existentes e faça Commit changes.
