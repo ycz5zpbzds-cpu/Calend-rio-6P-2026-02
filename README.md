@@ -1,27 +1,18 @@
-# V18 — sem chave e ícone global
+# V19 — sincronização corrigida
 
-## Mudanças
-- não pede chave em nenhum aparelho;
-- conecta automaticamente ao Apps Script;
-- permite escolher PNG, JPG, WEBP ou SVG no próprio site;
-- converte o ícone para PNG 512 × 512;
-- envia o arquivo ao Google Drive;
-- salva o endereço na aba Configuracoes;
-- sincroniza favicon e ícone usado em novas instalações;
-- mantém icon.svg como fallback.
+Correções:
+- configurações globais não são mais gravadas na aba Configuracoes;
+- cores, emojis e ícone são guardados nas Propriedades do Apps Script;
+- evita o erro de ações no nível da coluna causado pelas Tabelas do Google Planilhas;
+- datas novas são gravadas como dd/MM/yyyy sem alterar a formatação da coluna;
+- botões ficam bloqueados durante a gravação para impedir eventos duplicados;
+- falha de atualização depois de uma gravação não faz o site afirmar que a gravação falhou;
+- outros aparelhos verificam mudanças a cada 30 segundos;
+- ao voltar para o site no celular, ele sincroniza imediatamente.
 
-## Publicação
-1. Substitua o código do Apps Script pelo arquivo V18.
-2. Execute a função setupV18 e autorize o acesso ao Google Drive.
-3. Atualize a implantação para uma nova versão.
-4. Envie ao GitHub: index.html, eventos.json, manifest.webmanifest e icon.svg.
-5. Abra:
-   https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/?build=18
-
-## Segurança
-Esta versão não tem autenticação. Qualquer pessoa que descubra o endereço /exec
-pode alterar eventos, configurações e o ícone.
-
-## iPhone/iPad
-O ícone de um atalho já instalado pode ficar em cache. Remova o atalho antigo
-e adicione novamente pelo Safari depois de trocar o ícone.
+Publicação:
+1. Substituir o Apps Script pelo arquivo V19.
+2. Executar setupV19.
+3. Criar nova versão da implantação existente.
+4. Substituir no GitHub: index.html, eventos.json, manifest.webmanifest e icon.svg.
+5. Abrir com ?build=19.

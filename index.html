@@ -10,9 +10,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=18">
-  <link id="appFavicon" rel="icon" href="./icon.svg?v=18" type="image/svg+xml">
-  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=18">
+  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=19">
+  <link id="appFavicon" rel="icon" href="./icon.svg?v=19" type="image/svg+xml">
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=19">
   <title>Calendário Medicina UFMG — 6º Período — 2026/2</title>
   <style>
 :root{
@@ -908,14 +908,14 @@ const S={
   weekOffset:0,
   sync:{status:"loading",message:"Carregando planilha…",updatedAt:null,remoteCount:0},
   api:{status:"loading",message:"Conectando automaticamente…",updatedAt:null},
-  appIcon:{url:"./icon.svg?v=18",updatedAt:"",custom:false}
+  appIcon:{url:"./icon.svg?v=19",updatedAt:"",custom:false}
 };
 
 const DISC_STYLE_KEY="medicinaUFMG_discStyles_v1";
 
 const CHART_STYLE_KEY="medicinaUFMG_chartStyles_v1";
 const EVENT_EDIT_KEY="medicinaUFMG_eventEdits_v1";
-const DEFAULT_APP_ICON="./icon.svg?v=18";
+const DEFAULT_APP_ICON="./icon.svg?v=19";
 let dynamicManifestUrl="";
 let pendingAppIconDataUrl="";
 
@@ -1098,7 +1098,7 @@ function updateDynamicManifest(iconUrl){
   const manifest={
     name:"Calendário Medicina UFMG — 6º Período — 2026/2",
     short_name:"Medicina UFMG",
-    start_url:"./?build=18",
+    start_url:"./?build=19",
     scope:"./",
     display:"standalone",
     background_color:"#F4F2EC",
@@ -1143,7 +1143,7 @@ function applyAppIcon(siteConfig={}){
       URL.revokeObjectURL(dynamicManifestUrl);
       dynamicManifestUrl="";
     }
-    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=18");
+    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=19");
   }
 
   document.querySelectorAll("[data-app-icon-preview]").forEach(image=>{
@@ -1388,12 +1388,33 @@ async function resetAppIconForEveryone(){
   }
 }
 
+
+function setButtonBusy(selector,busy,busyText="Salvando…"){
+  const button=$(selector);
+  if(!button)return;
+
+  if(busy){
+    if(!button.dataset.originalText)button.dataset.originalText=button.textContent;
+    button.disabled=true;
+    button.textContent=busyText;
+  }else{
+    button.disabled=false;
+    button.textContent=button.dataset.originalText||button.textContent;
+  }
+}
+
+async function refreshAfterSuccessfulWrite(){
+  try{
+    await bootstrapGlobal(true);
+  }catch(_){}
+}
+
 async function saveEventForEveryone(){
   const event=selectedEventFromEditor();
   if(!event)return;
 
   if(!event.id){
-    toast("Aguarde a sincronização automática carregar o ID deste evento.");
+    toast("Aguarde a sincronização carregar o ID deste evento.");
     return;
   }
 
@@ -1406,10 +1427,13 @@ async function saveEventForEveryone(){
     toast("Preencha a data e o título.");
     return;
   }
+
   if(end&&dateKey(end)<dateKey(date)){
     toast("A data final não pode ser anterior à data inicial.");
     return;
   }
+
+  setButtonBusy("#saveEventGlobal",true,"Salvando…");
 
   try{
     await apiRequest("updateEvent",{
@@ -1425,15 +1449,18 @@ async function saveEventForEveryone(){
     delete localEdits[event._sourceKey];
     saveEventEdits(localEdits);
 
-    await bootstrapGlobal(true);
     toast("Evento atualizado para todos os dispositivos.");
+    await refreshAfterSuccessfulWrite();
   }catch(error){
     toast(error.message||"Não foi possível salvar.");
+  }finally{
+    setButtonBusy("#saveEventGlobal",false);
   }
 }
 
 async function deleteEventForEveryone(){
   const event=selectedEventFromEditor();
+
   if(!event||!event.id){
     toast("Aguarde a sincronização automática terminar.");
     return;
@@ -1441,12 +1468,16 @@ async function deleteEventForEveryone(){
 
   if(!confirm(`Excluir definitivamente “${event.label}”?`))return;
 
+  setButtonBusy("#deleteEventGlobal",true,"Excluindo…");
+
   try{
     await apiRequest("deleteEvent",{id:event.id});
-    await bootstrapGlobal(true);
     toast("Evento excluído para todos os dispositivos.");
+    await refreshAfterSuccessfulWrite();
   }catch(error){
     toast(error.message||"Não foi possível excluir.");
+  }finally{
+    setButtonBusy("#deleteEventGlobal",false);
   }
 }
 
@@ -1461,33 +1492,48 @@ async function addEventForEveryone(){
     toast("Preencha data, disciplina e título.");
     return;
   }
+
   if(end&&dateKey(end)<dateKey(date)){
     toast("A data final não pode ser anterior à data inicial.");
     return;
   }
 
+  setButtonBusy("#addEventGlobal",true,"Adicionando…");
+
   try{
-    await apiRequest("addEvent",{
-      date,
-      end,
-      disc:discCode,
-      label,
-      time
-    });
-    await bootstrapGlobal(true);
+    await apiRequest("addEvent",{date,end,disc:discCode,label,time});
+
+    if($("#newEventTitle"))$("#newEventTitle").value="";
+    if($("#newEventTime"))$("#newEventTime").value="";
+    if($("#newEventEnd"))$("#newEventEnd").value="";
+
     toast("Novo evento adicionado para todos os dispositivos.");
+    await refreshAfterSuccessfulWrite();
   }catch(error){
     toast(error.message||"Não foi possível adicionar.");
+  }finally{
+    setButtonBusy("#addEventGlobal",false);
   }
 }
 
 async function saveStylesForEveryone(){
+  setButtonBusy("#saveDiscStylesGlobal",true,"Salvando…");
+  setButtonBusy("#saveChartStylesGlobal",true,"Salvando…");
+
   try{
-    await apiRequest("saveConfig",{items:collectGlobalConfigItems()});
-    await bootstrapGlobal(true);
+    const result=await apiRequest("saveConfig",{
+      items:collectGlobalConfigItems()
+    });
+
+    applyGlobalConfig(result.config||{});
+    render();
     toast("Cores e emojis salvos para todos os dispositivos.");
+    await refreshAfterSuccessfulWrite();
   }catch(error){
     toast(error.message||"Não foi possível salvar as configurações.");
+  }finally{
+    setButtonBusy("#saveDiscStylesGlobal",false);
+    setButtonBusy("#saveChartStylesGlobal",false);
   }
 }
 
@@ -1722,7 +1768,7 @@ function shell(){
             </div>
             <div class="eyebrow">${S.data.meta.subtitle}</div>
             <h1>${S.data.meta.title}</h1>
-            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V18 SEM CHAVE</div>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V19 SYNC CORRIGIDO</div>
           </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -2181,7 +2227,7 @@ function settings(){
         <div class="api-heading">
           <div>
             <b>🌐 Sincronização automática em todos os dispositivos</b>
-            <div class="label">Não é necessário inserir chave. O site conecta diretamente à planilha central.</div>
+            <div class="label">Não é necessário inserir chave. As mudanças chegam aos aparelhos ao abrir o site e, enquanto ele estiver aberto, em até 30 segundos.</div>
           </div>
           <div class="api-status">${apiStatusLabel()}</div>
         </div>
@@ -2489,7 +2535,7 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=18",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=19",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     applySavedDisciplineStyles();
@@ -2505,8 +2551,8 @@ document.addEventListener("DOMContentLoaded",async()=>{
     await bootstrapGlobal(true);
 
     setInterval(renderCountdown,60000);
-    const refreshMinutes=Number(S.data.meta.autoRefreshMinutes)||5;
-    setInterval(()=>refreshCurrentSource(true),refreshMinutes*60000);
+    const refreshSeconds=30;
+    setInterval(()=>refreshCurrentSource(true),refreshSeconds*1000);
     document.addEventListener("visibilitychange",()=>{
       if(document.visibilityState==="visible")refreshCurrentSource(true);
     });
