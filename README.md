@@ -1,23 +1,19 @@
-# V10 — correção definitiva de cache
+# V11 — logos originais e link corrigido
 
-Esta versão usa um arquivo único `v10.html`, com:
-- JavaScript embutido;
-- CSS embutido;
-- duas marcas embutidas;
-- botão direto para editar a planilha;
-- botão para abrir o arquivo no Drive;
-- botão para atualizar o calendário.
+## Corrigido
+- usa exatamente as duas imagens enviadas pelo usuário;
+- preserva a logo completa da Faculdade de Medicina UFMG;
+- preserva a logo vermelha completa, removendo apenas margens pretas vazias;
+- botão de edição aponta para a planilha nativa correta:
+  https://docs.google.com/spreadsheets/d/1udd_YAqhdfZwbifz5PZaqMH8f4iyc1YhpO9nNeme9gk/edit
+- o link é um elemento `<a>`, evitando bloqueio de pop-up do Safari.
 
-## Upload no GitHub
-Envie e substitua:
+## Enviar ao GitHub
 - index.html
-- v10.html
+- v11.html
 - eventos.json
 - manifest.webmanifest
 - icon.svg
 
 ## Teste direto
-Depois do commit, abra:
-https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/v10.html?build=10
-
-O `index.html` também redireciona automaticamente para essa página.
+https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/v11.html?build=11
