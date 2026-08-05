@@ -1,25 +1,30 @@
-# V13 — personalização de cores e emojis
+# V14 — index direto
 
-Na aba Configurações, há um editor para cada disciplina:
-- seletor de cor;
-- campo de emoji;
-- prévia imediata;
-- botão para restaurar os padrões.
+Esta versão elimina o problema de mistura entre `v11.html`, `v12.html` e `v13.html`.
 
-As escolhas são salvas no navegador por localStorage e passam a valer em:
-- dashboard;
-- calendário;
-- agenda;
-- gráficos;
-- cards de disciplina;
-- exportação ICS por matéria.
+O site completo está dentro de `index.html`.
 
 ## Enviar ao GitHub
+Substitua:
 - index.html
-- v13.html
 - eventos.json
 - manifest.webmanifest
 - icon.svg
 
-## Teste direto
-https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/v13.html?build=13
+## Depois do upload
+Abra:
+https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/?build=14
+
+Na aba Configurações deve aparecer:
+🎨 Cores e emojis das disciplinas — PERSONALIZAÇÃO ATIVA
+
+## Limpeza opcional
+Pode apagar do repositório:
+- v10.html
+- v11.html
+- v12.html
+- v13.html
+- app.js
+- styles.css
+- sw.js
+- logo_medicina.svg
