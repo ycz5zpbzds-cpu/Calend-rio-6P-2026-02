@@ -1,18 +1,23 @@
-# V9 — logo + link da planilha
+# V10 — correção definitiva de cache
 
-Mudanças:
-- adiciona um botão **Abrir planilha** em Configurações;
-- adiciona um botão **Atualizar agora** em Configurações;
-- adiciona uma logo estilizada no painel principal;
-- mantém a planilha conectada;
-- continua usando cache forçado para evitar carregar arquivos antigos.
+Esta versão usa um arquivo único `v10.html`, com:
+- JavaScript embutido;
+- CSS embutido;
+- duas marcas embutidas;
+- botão direto para editar a planilha;
+- botão para abrir o arquivo no Drive;
+- botão para atualizar o calendário.
 
-## Arquivos para substituir no GitHub
+## Upload no GitHub
+Envie e substitua:
 - index.html
-- styles.css
-- app.js
+- v10.html
 - eventos.json
 - manifest.webmanifest
-- sw.js
 - icon.svg
-- logo_medicina.svg
+
+## Teste direto
+Depois do commit, abra:
+https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/v10.html?build=10
+
+O `index.html` também redireciona automaticamente para essa página.

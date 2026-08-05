@@ -1,7 +1,7 @@
 {
-  "name": "Calendário Premium — Turma A",
-  "short_name": "Turma A",
-  "start_url": "./",
+  "name": "Calendário Medicina UFMG — 6º Período — 2026/2",
+  "short_name": "Medicina UFMG",
+  "start_url": "./v10.html?build=10",
   "scope": "./",
   "display": "standalone",
   "background_color": "#F4F2EC",
