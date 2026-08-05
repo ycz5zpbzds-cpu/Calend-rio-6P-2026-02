@@ -750,6 +750,71 @@ h1{margin:10px 0 7px;font-size:35px;line-height:1.04;letter-spacing:-.025em}
   .event-title-field{grid-column:auto}
 }
 
+
+/* ===== V16: sincronização global pela API do Apps Script ===== */
+.setting-api,.setting-add-event{grid-column:1/-1}
+.setting-api{
+  border:2px solid color-mix(in srgb,var(--accent) 38%,var(--line));
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 7%,var(--panel)),var(--panel));
+}
+.api-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+}
+.api-status{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 10px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--panel);
+  font-size:11px;
+  white-space:nowrap;
+}
+.api-dot{
+  width:9px;height:9px;border-radius:50%;background:#94a3b8;flex:0 0 auto
+}
+.api-dot.ok{background:#10b981}
+.api-dot.loading{background:#f59e0b;animation:pulse-sync 1s infinite alternate}
+.api-dot.error{background:#ef4444}
+.api-connect-grid{
+  display:grid;
+  grid-template-columns:minmax(240px,1fr) auto auto;
+  gap:9px;
+  align-items:end;
+  margin-top:13px;
+}
+.api-connect-grid label{display:grid;gap:6px;color:var(--muted);font-size:11px;font-weight:800}
+.sheet-btn.danger{
+  background:#fff1f2;
+  color:#be123c;
+  border-color:#fecdd3;
+}
+body.dark .sheet-btn.danger{
+  background:#3f111a;
+  color:#fda4af;
+  border-color:#7f1d1d;
+}
+.add-event-grid{
+  grid-template-columns:150px 150px minmax(180px,.8fr) minmax(260px,1.4fr) 190px;
+  margin-top:13px;
+}
+@media(max-width:1100px){
+  .api-connect-grid{grid-template-columns:1fr 1fr}
+  .api-connect-grid label{grid-column:1/-1}
+  .add-event-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:700px){
+  .api-heading{display:grid}
+  .api-status{white-space:normal;width:100%}
+  .api-connect-grid{grid-template-columns:1fr}
+  .api-connect-grid label{grid-column:auto}
+  .add-event-grid{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -779,13 +844,15 @@ const S={
   favorites:new Set(JSON.parse(localStorage.getItem("fav")||"[]")),
   completed:new Set(JSON.parse(localStorage.getItem("done")||"[]")),
   weekOffset:0,
-  sync:{status:"loading",message:"Carregando planilha…",updatedAt:null,remoteCount:0}
+  sync:{status:"loading",message:"Carregando planilha…",updatedAt:null,remoteCount:0},
+  api:{status:"disconnected",message:"Chave ainda não configurada.",updatedAt:null}
 };
 
 const DISC_STYLE_KEY="medicinaUFMG_discStyles_v1";
 
 const CHART_STYLE_KEY="medicinaUFMG_chartStyles_v1";
 const EVENT_EDIT_KEY="medicinaUFMG_eventEdits_v1";
+const API_SECRET_STORAGE_KEY="medicinaUFMG_apiSecret_v1";
 
 const DEFAULT_CHART_STYLES={
   completed:"#10b981",
@@ -836,7 +903,7 @@ function saveEventEdits(edits){
 }
 
 function makeEventSourceKey(event,index){
-  return event._sourceKey||[
+  return event.id||event._sourceKey||[
     event.disc||"",
     event.date||"",
     event.label||"",
@@ -845,8 +912,8 @@ function makeEventSourceKey(event,index){
   ].join("|");
 }
 
-function prepareEvents(events){
-  const edits=loadEventEdits();
+function prepareEvents(events,useLocalEdits=true){
+  const edits=useLocalEdits?loadEventEdits():{};
   return events.map((event,index)=>{
     const item={...event};
     item._sourceKey=makeEventSourceKey(item,index);
@@ -873,6 +940,275 @@ function resetAllLocalEventEdits(){
   location.reload();
 }
 
+
+
+function getApiSecret(){
+  return localStorage.getItem(API_SECRET_STORAGE_KEY)||"";
+}
+
+function apiIsConnected(){
+  return S.api.status==="ok"&&!!getApiSecret();
+}
+
+function apiStatusLabel(){
+  if(S.api.status==="ok"){
+    const time=S.api.updatedAt
+      ? S.api.updatedAt.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})
+      : "";
+    return `<span class="api-dot ok"></span><span><b>Conectado</b>${time?` · sincronizado às ${time}`:""}</span>`;
+  }
+  if(S.api.status==="loading"){
+    return `<span class="api-dot loading"></span><span><b>Conectando…</b></span>`;
+  }
+  if(S.api.status==="error"){
+    return `<span class="api-dot error"></span><span><b>Falha na conexão</b> · ${S.api.message||"verifique a chave"}</span>`;
+  }
+  return `<span class="api-dot"></span><span><b>Não conectado</b> · informe a chave secreta abaixo</span>`;
+}
+
+async function apiRequest(action,payload={}){
+  const secret=getApiSecret();
+  if(!secret)throw new Error("Digite e salve a chave secreta primeiro.");
+
+  const endpoint=S.data?.meta?.apiUrl;
+  if(!endpoint)throw new Error("Endereço da API não configurado.");
+
+  const response=await fetch(endpoint,{
+    method:"POST",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({action,secret,...payload}),
+    cache:"no-store",
+    redirect:"follow"
+  });
+
+  const text=await response.text();
+  let data;
+  try{
+    data=JSON.parse(text);
+  }catch(_){
+    throw new Error("A API respondeu em formato inesperado.");
+  }
+
+  if(!data.ok)throw new Error(data.error||"A operação não foi concluída.");
+  return data;
+}
+
+function applyGlobalConfig(config={}){
+  const disciplineColors=config.disciplineColor||{};
+  const disciplineIcons=config.disciplineIcon||{};
+  const savedDisc=loadDisciplineStyles();
+
+  Object.keys(S.data.disciplines).forEach(code=>{
+    const item=S.data.disciplines[code];
+    if(/^#[0-9a-f]{6}$/i.test(disciplineColors[code]||"")){
+      item.color=disciplineColors[code];
+    }
+    if(typeof disciplineIcons[code]==="string"&&disciplineIcons[code].trim()){
+      item.icon=disciplineIcons[code].trim();
+    }
+    savedDisc[code]={color:item.color,icon:item.icon||""};
+  });
+  localStorage.setItem(DISC_STYLE_KEY,JSON.stringify(savedDisc));
+
+  const globalCharts=config.chartColor||{};
+  const charts={...loadChartStyles()};
+  Object.keys(DEFAULT_CHART_STYLES).forEach(key=>{
+    if(/^#[0-9a-f]{6}$/i.test(globalCharts[key]||"")){
+      charts[key]=globalCharts[key];
+    }
+  });
+  localStorage.setItem(CHART_STYLE_KEY,JSON.stringify(charts));
+  applyChartStyles();
+}
+
+function collectGlobalConfigItems(){
+  const items=[];
+
+  Object.entries(S.data.disciplines).forEach(([code,item])=>{
+    items.push({category:"disciplineColor",key:code,value:item.color});
+    items.push({category:"disciplineIcon",key:code,value:item.icon||""});
+  });
+
+  const chartColors=loadChartStyles();
+  Object.entries(chartColors).forEach(([key,value])=>{
+    items.push({category:"chartColor",key,value});
+  });
+
+  return items;
+}
+
+async function bootstrapGlobal(silent=false){
+  if(!getApiSecret()){
+    S.api={status:"disconnected",message:"Chave ainda não configurada.",updatedAt:null};
+    if(!silent)render();
+    return false;
+  }
+
+  S.api.status="loading";
+  if(!silent)render();
+
+  try{
+    const data=await apiRequest("bootstrap");
+    applyGlobalConfig(data.config||{});
+    S.data.events=prepareEvents(data.events||[],false);
+    S.sync={
+      status:"ok",
+      message:"Sincronização global ativa",
+      updatedAt:new Date(),
+      remoteCount:S.data.events.length
+    };
+    S.api={
+      status:"ok",
+      message:"Sincronização global ativa",
+      updatedAt:new Date()
+    };
+    render();
+    if(!silent)toast("Dados sincronizados em todos os dispositivos.");
+    return true;
+  }catch(error){
+    S.api={
+      status:"error",
+      message:error.message||"Não foi possível conectar.",
+      updatedAt:null
+    };
+    if(!silent){
+      render();
+      toast(S.api.message);
+    }
+    return false;
+  }
+}
+
+async function connectGlobalApi(){
+  const input=$("#apiSecretInput");
+  const secret=(input?.value||"").trim();
+
+  if(secret){
+    localStorage.setItem(API_SECRET_STORAGE_KEY,secret);
+  }
+
+  if(!getApiSecret()){
+    toast("Digite sua chave secreta.");
+    return;
+  }
+
+  await bootstrapGlobal(false);
+}
+
+function forgetGlobalApi(){
+  localStorage.removeItem(API_SECRET_STORAGE_KEY);
+  S.api={status:"disconnected",message:"Chave removida deste aparelho.",updatedAt:null};
+  render();
+  toast("Chave removida deste aparelho.");
+}
+
+async function refreshCurrentSource(silent=false){
+  if(getApiSecret())return bootstrapGlobal(silent);
+  return loadRemoteEvents(silent);
+}
+
+async function saveEventForEveryone(){
+  const event=selectedEventFromEditor();
+  if(!event)return;
+
+  if(!event.id){
+    toast("Conecte a sincronização global para carregar o ID deste evento.");
+    return;
+  }
+
+  const date=$("#eventEditDate").value;
+  const end=$("#eventEditEnd").value;
+  const label=$("#eventEditTitle").value.trim();
+  const time=$("#eventEditTime").value.trim();
+
+  if(!date||!label){
+    toast("Preencha a data e o título.");
+    return;
+  }
+  if(end&&dateKey(end)<dateKey(date)){
+    toast("A data final não pode ser anterior à data inicial.");
+    return;
+  }
+
+  try{
+    await apiRequest("updateEvent",{
+      id:event.id,
+      date,
+      end,
+      disc:event.disc,
+      label,
+      time
+    });
+
+    const localEdits=loadEventEdits();
+    delete localEdits[event._sourceKey];
+    saveEventEdits(localEdits);
+
+    await bootstrapGlobal(true);
+    toast("Evento atualizado para todos os dispositivos.");
+  }catch(error){
+    toast(error.message||"Não foi possível salvar.");
+  }
+}
+
+async function deleteEventForEveryone(){
+  const event=selectedEventFromEditor();
+  if(!event||!event.id){
+    toast("Conecte a sincronização global primeiro.");
+    return;
+  }
+
+  if(!confirm(`Excluir definitivamente “${event.label}”?`))return;
+
+  try{
+    await apiRequest("deleteEvent",{id:event.id});
+    await bootstrapGlobal(true);
+    toast("Evento excluído para todos os dispositivos.");
+  }catch(error){
+    toast(error.message||"Não foi possível excluir.");
+  }
+}
+
+async function addEventForEveryone(){
+  const date=$("#newEventDate")?.value||"";
+  const end=$("#newEventEnd")?.value||"";
+  const discCode=$("#newEventDisc")?.value||"";
+  const label=($("#newEventTitle")?.value||"").trim();
+  const time=($("#newEventTime")?.value||"").trim();
+
+  if(!date||!discCode||!label){
+    toast("Preencha data, disciplina e título.");
+    return;
+  }
+  if(end&&dateKey(end)<dateKey(date)){
+    toast("A data final não pode ser anterior à data inicial.");
+    return;
+  }
+
+  try{
+    await apiRequest("addEvent",{
+      date,
+      end,
+      disc:discCode,
+      label,
+      time
+    });
+    await bootstrapGlobal(true);
+    toast("Novo evento adicionado para todos os dispositivos.");
+  }catch(error){
+    toast(error.message||"Não foi possível adicionar.");
+  }
+}
+
+async function saveStylesForEveryone(){
+  try{
+    await apiRequest("saveConfig",{items:collectGlobalConfigItems()});
+    await bootstrapGlobal(true);
+    toast("Cores e emojis salvos para todos os dispositivos.");
+  }catch(error){
+    toast(error.message||"Não foi possível salvar as configurações.");
+  }
+}
 
 function loadDisciplineStyles(){
   try{
@@ -1055,15 +1391,17 @@ function renderSyncStatus(){
   const box=$("#syncStatus");
   if(!box)return;
   box.className=`sync-status ${S.sync.status}`;
-  const label=S.sync.status==="ok"
-    ? `<strong>Planilha conectada</strong> · ${S.sync.remoteCount} eventos · atualizado às ${syncTimeLabel(S.sync.updatedAt)}`
-    : S.sync.status==="loading"
-      ? `<strong>Atualizando planilha…</strong>`
-      : `<strong>Usando cópia local</strong> · ${S.sync.message}`;
+  const label=apiIsConnected()
+    ? `<strong>Sincronização global ativa</strong> · ${S.sync.remoteCount} eventos · atualizado às ${syncTimeLabel(S.api.updatedAt)}`
+    : S.sync.status==="ok"
+      ? `<strong>Planilha conectada</strong> · ${S.sync.remoteCount} eventos · atualizado às ${syncTimeLabel(S.sync.updatedAt)}`
+      : S.sync.status==="loading"
+        ? `<strong>Atualizando planilha…</strong>`
+        : `<strong>Usando cópia local</strong> · ${S.sync.message}`;
   box.innerHTML=`<div class="sync-left"><span class="sync-dot"></span><span class="sync-text">${label}</span></div>
     <button id="syncNow" class="sync-btn" ${S.sync.status==="loading"?"disabled":""}>Atualizar agora</button>`;
   const button=$("#syncNow");
-  if(button)button.onclick=()=>loadRemoteEvents(false);
+  if(button)button.onclick=()=>refreshCurrentSource(false);
 }
 async function loadRemoteEvents(silent=false){
   const base=S.data?.meta?.sourceCsv;
@@ -1103,7 +1441,7 @@ function shell(){
             </div>
             <div class="eyebrow">${S.data.meta.subtitle}</div>
             <h1>${S.data.meta.title}</h1>
-            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V15</div>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V16 GLOBAL</div>
           </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -1558,20 +1896,42 @@ function settings(){
         </div>
         <div class="sheet-note">Depois de alterar a planilha, volte ao calendário e clique em “Atualizar calendário”.</div>
       </div>
+      <div class="setting setting-api">
+        <div class="api-heading">
+          <div>
+            <b>🌐 Sincronização em todos os dispositivos</b>
+            <div class="label">A chave fica salva somente neste navegador e nunca é enviada ao GitHub.</div>
+          </div>
+          <div class="api-status">${apiStatusLabel()}</div>
+        </div>
+        <div class="api-connect-grid">
+          <label>
+            <span>Chave secreta do Apps Script</span>
+            <input id="apiSecretInput" class="ctrl" type="password"
+              placeholder="${getApiSecret()?"Chave já salva neste aparelho":"Cole sua chave secreta"}"
+              autocomplete="off">
+          </label>
+          <button id="connectApi" class="sheet-btn primary" type="button">Conectar e sincronizar</button>
+          <button id="forgetApi" class="sheet-btn" type="button">Esquecer chave</button>
+        </div>
+        <div class="sheet-note">Depois de conectar, as alterações globais serão gravadas na planilha e aparecerão no Mac, iPhone, iPad e demais aparelhos.</div>
+      </div>
       <div class="setting setting-disciplines">
         <b>🎨 Cores e emojis das disciplinas — PERSONALIZAÇÃO ATIVA</b>
         <div class="label">Escolha uma cor e um emoji para cada matéria. A mudança aparece em todo o site imediatamente.</div>
         <div id="disciplineStyleEditor" class="discipline-style-editor"></div>
         <div class="actions">
+          <button id="saveDiscStylesGlobal" class="sheet-btn primary" type="button">Salvar cores e emojis para todos</button>
           <button id="resetDiscStyles" class="sheet-btn" type="button">Restaurar cores e emojis padrão</button>
         </div>
-        <div class="sheet-note">As escolhas ficam salvas neste navegador. Em outro aparelho, você pode personalizar novamente.</div>
+        <div class="sheet-note">A prévia muda imediatamente. Clique em “Salvar para todos” para sincronizar nos outros aparelhos.</div>
       </div>
       <div class="setting setting-chart-colors">
         <b>📊 Cores das barras e gráficos</b>
         <div class="label">Personalize as cores de concluídas, pendentes e da barra de progresso do semestre.</div>
         <div id="chartStyleEditor" class="chart-style-editor"></div>
         <div class="actions">
+          <button id="saveChartStylesGlobal" class="sheet-btn primary" type="button">Salvar cores dos gráficos para todos</button>
           <button id="resetChartStyles" class="sheet-btn" type="button">Restaurar cores dos gráficos</button>
         </div>
       </div>
@@ -1592,14 +1952,36 @@ function settings(){
             <label><span>Horário</span><input id="eventEditTime" type="text" class="ctrl" placeholder="Ex.: 14h–15h30"></label>
           </div>
           <div class="actions">
-            <button id="saveEventEdit" class="sheet-btn primary" type="button">Salvar alteração neste aparelho</button>
+            <button id="saveEventGlobal" class="sheet-btn primary" type="button">Salvar para todos os dispositivos</button>
+            <button id="saveEventEdit" class="sheet-btn" type="button">Salvar só neste aparelho</button>
+            <button id="deleteEventGlobal" class="sheet-btn danger" type="button">Excluir para todos</button>
             <button id="resetEventEdit" class="sheet-btn" type="button">Restaurar este evento</button>
-            <button id="resetAllEventEdits" class="sheet-btn" type="button">Apagar todas as edições locais</button>
+            <button id="resetAllEventEdits" class="sheet-btn" type="button">Apagar edições locais</button>
           </div>
         </div>
-        <div class="sheet-note"><b>Importante:</b> estas alterações ficam somente neste navegador. Para mudar oficialmente em todos os aparelhos, use “Editar no Google Planilhas”.</div>
+        <div class="sheet-note">“Salvar para todos” modifica a planilha central. “Salvar só neste aparelho” não altera os outros dispositivos.</div>
       </div>
-      <div class="setting"><b>Google Planilhas</b><div class="label">Os eventos são lidos da planilha publicada sempre que o site abre e a cada 5 minutos.</div></div>
+
+      <div class="setting setting-add-event">
+        <b>➕ Adicionar novo evento</b>
+        <div class="label">O novo evento será gravado na planilha e aparecerá em todos os aparelhos.</div>
+        <div class="event-edit-grid add-event-grid">
+          <label><span>Data</span><input id="newEventDate" type="date" class="ctrl"></label>
+          <label><span>Data final</span><input id="newEventEnd" type="date" class="ctrl"></label>
+          <label>
+            <span>Disciplina</span>
+            <select id="newEventDisc" class="ctrl">
+              ${Object.entries(S.data.disciplines).map(([code,item])=>`<option value="${code}">${item.icon||""} ${item.name}</option>`).join("")}
+            </select>
+          </label>
+          <label class="event-title-field"><span>Título</span><input id="newEventTitle" type="text" class="ctrl" placeholder="Nome da atividade"></label>
+          <label><span>Horário</span><input id="newEventTime" type="text" class="ctrl" placeholder="Ex.: 14h–15h30"></label>
+        </div>
+        <div class="actions">
+          <button id="addEventGlobal" class="sheet-btn primary" type="button">Adicionar para todos os dispositivos</button>
+        </div>
+      </div>
+      <div class="setting"><b>Google Planilhas</b><div class="label">Sem a chave, o site funciona em modo de leitura. Com a chave conectada, lê e grava diretamente na planilha central.</div></div>
       <div class="setting"><b>Funcionamento offline</b><div class="label">Sem internet, o site mantém a última cópia local disponível.</div></div>
       <div class="setting"><label><span><b>Limpar favoritos e marcações</b><div class="label">Remove apenas dados salvos neste navegador.</div></span><button id="reset" class="ctrl btn">Limpar</button></label></div>
     </div>
@@ -1632,7 +2014,9 @@ function bind(){
   $("#type").onchange=e=>{S.type=e.target.value;render()};
   $("#theme").onclick=toggleTheme;
   if($("#theme2"))$("#theme2").onclick=toggleTheme;
-  if($("#syncNowSettings"))$("#syncNowSettings").onclick=()=>loadRemoteEvents(false);
+  if($("#syncNowSettings"))$("#syncNowSettings").onclick=()=>refreshCurrentSource(false);
+  if($("#connectApi"))$("#connectApi").onclick=connectGlobalApi;
+  if($("#forgetApi"))$("#forgetApi").onclick=forgetGlobalApi;
   $$(".disc-color-input").forEach(input=>input.oninput=()=>{
     const code=input.dataset.code;
     const item=S.data.disciplines[code];
@@ -1663,6 +2047,9 @@ function bind(){
     if(confirm("Restaurar todas as cores e emojis padrão?"))resetDisciplineStyles();
   };
 
+  if($("#saveDiscStylesGlobal"))$("#saveDiscStylesGlobal").onclick=saveStylesForEveryone;
+  if($("#saveChartStylesGlobal"))$("#saveChartStylesGlobal").onclick=saveStylesForEveryone;
+
   $$(".chart-color-input").forEach(input=>input.oninput=()=>{
     saveChartStyle(input.dataset.chartColor,input.value);
     const small=input.closest(".chart-color-row")?.querySelector("small");
@@ -1679,6 +2066,9 @@ function bind(){
   if($("#eventEditorSelect"))$("#eventEditorSelect").onchange=()=>{
     fillEventEditor(selectedEventFromEditor());
   };
+  if($("#saveEventGlobal"))$("#saveEventGlobal").onclick=saveEventForEveryone;
+  if($("#deleteEventGlobal"))$("#deleteEventGlobal").onclick=deleteEventForEveryone;
+  if($("#addEventGlobal"))$("#addEventGlobal").onclick=addEventForEveryone;
   if($("#saveEventEdit"))$("#saveEventEdit").onclick=saveLocalEventEdit;
   if($("#resetEventEdit"))$("#resetEventEdit").onclick=resetSelectedLocalEventEdit;
   if($("#resetAllEventEdits"))$("#resetAllEventEdits").onclick=()=>{
@@ -1800,7 +2190,7 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=15",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=16",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     applySavedDisciplineStyles();
@@ -1812,14 +2202,15 @@ document.addEventListener("DOMContentLoaded",async()=>{
     render();
 
     await loadRemoteEvents(true);
+    if(getApiSecret())await bootstrapGlobal(true);
 
     setInterval(renderCountdown,60000);
     const refreshMinutes=Number(S.data.meta.autoRefreshMinutes)||5;
-    setInterval(()=>loadRemoteEvents(true),refreshMinutes*60000);
+    setInterval(()=>refreshCurrentSource(true),refreshMinutes*60000);
     document.addEventListener("visibilitychange",()=>{
-      if(document.visibilityState==="visible")loadRemoteEvents(true);
+      if(document.visibilityState==="visible")refreshCurrentSource(true);
     });
-    window.addEventListener("online",()=>loadRemoteEvents(true));
+    window.addEventListener("online",()=>refreshCurrentSource(true));
 
     
   }catch(error){

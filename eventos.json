@@ -4,12 +4,13 @@
     "subtitle": "Turma A · Medicina UFMG · Ciclo Clínico",
     "semesterStart": "2026-08-03",
     "semesterEnd": "2026-12-04",
-    "version": "15.0 Edição avançada no próprio site",
+    "version": "16.0 Sincronização global pelo Apps Script",
     "sourceCsv": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1mM31Eev9pdETLKewHKu1z5iUcw76H43yhxT9n5VF93uEm5VXkEAFQ0EGy35qYPOZGukUmxc5eP3M/pub?gid=2145739929&single=true&output=csv",
     "autoRefreshMinutes": 5,
     "sheetEditUrl": "https://docs.google.com/spreadsheets/d/1udd_YAqhdfZwbifz5PZaqMH8f4iyc1YhpO9nNeme9gk/edit",
     "sheetDriveUrl": "https://drive.google.com/file/d/1VWK2pDkzfKLy0fiy8dDKvzDdwZrlj8Jk",
-    "sheetPublicUrl": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1mM31Eev9pdETLKewHKu1z5iUcw76H43yhxT9n5VF93uEm5VXkEAFQ0EGy35qYPOZGukUmxc5eP3M/pubhtml?gid=2145739929&single=true"
+    "sheetPublicUrl": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1mM31Eev9pdETLKewHKu1z5iUcw76H43yhxT9n5VF93uEm5VXkEAFQ0EGy35qYPOZGukUmxc5eP3M/pubhtml?gid=2145739929&single=true",
+    "apiUrl": "https://script.google.com/macros/s/AKfycbx2CVtSrSpTXliKc0N29npaPx5eWXpJHeWVP6J0bZGuXHDZwxevI9vISKikE77E7DPTFA/exec"
   },
   "disciplines": {
     "AP": {
