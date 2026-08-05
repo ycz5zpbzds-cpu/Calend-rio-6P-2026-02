@@ -10,9 +10,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=19">
-  <link id="appFavicon" rel="icon" href="./icon.svg?v=19" type="image/svg+xml">
-  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=19">
+  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=20">
+  <link id="appFavicon" rel="icon" href="./icon.svg?v=20" type="image/svg+xml">
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=20">
   <title>Calendário Medicina UFMG — 6º Período — 2026/2</title>
   <style>
 :root{
@@ -907,17 +907,21 @@ const S={
   completed:new Set(JSON.parse(localStorage.getItem("done")||"[]")),
   weekOffset:0,
   sync:{status:"loading",message:"Carregando planilha…",updatedAt:null,remoteCount:0},
-  api:{status:"loading",message:"Conectando automaticamente…",updatedAt:null},
-  appIcon:{url:"./icon.svg?v=19",updatedAt:"",custom:false}
+  api:{status:"loading",message:"Conectando automaticamente…",updatedAt:null,version:"",configRevision:""},
+  defaultDisciplineStyles:{},
+  appIcon:{url:"./icon.svg?v=20",updatedAt:"",custom:false}
 };
 
 const DISC_STYLE_KEY="medicinaUFMG_discStyles_v1";
 
 const CHART_STYLE_KEY="medicinaUFMG_chartStyles_v1";
 const EVENT_EDIT_KEY="medicinaUFMG_eventEdits_v1";
-const DEFAULT_APP_ICON="./icon.svg?v=19";
+const DEFAULT_APP_ICON="./icon.svg?v=20";
 let dynamicManifestUrl="";
 let pendingAppIconDataUrl="";
+let styleSaveTimer=null;
+const pendingGlobalStyleItems=new Map();
+const REQUIRED_API_VERSION="20";
 
 const DEFAULT_CHART_STYLES={
   completed:"#10b981",
@@ -1016,12 +1020,12 @@ function apiStatusLabel(){
     const time=S.api.updatedAt
       ? S.api.updatedAt.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})
       : "";
-    return `<span class="api-dot ok"></span><span><b>Sincronização automática ativa</b>${time?` · ${time}`:""}</span>`;
+    return `<span class="api-dot ok"></span><span><b>Sincronização automática ativa</b> · API V${S.api.version||"?"}${time?` · ${time}`:""}</span>`;
   }
   if(S.api.status==="loading"){
     return `<span class="api-dot loading"></span><span><b>Conectando automaticamente…</b></span>`;
   }
-  return `<span class="api-dot error"></span><span><b>Falha temporária</b> · ${S.api.message||"tente atualizar novamente"}</span>`;
+  return `<span class="api-dot error"></span><span><b>Sincronização indisponível</b> · ${S.api.message||"tente atualizar novamente"}</span>`;
 }
 
 function wait(ms){
@@ -1073,6 +1077,15 @@ async function apiRequest(action,payload={}){
   }
 }
 
+
+function assertCurrentApiVersion(data){
+  const version=String(data?.apiVersion||"");
+  if(version!==REQUIRED_API_VERSION){
+    throw new Error(`API desatualizada: está na versão ${version||"antiga"} e o site precisa da V${REQUIRED_API_VERSION}. Atualize a implantação do Apps Script.`);
+  }
+  return version;
+}
+
 function appendVersion(url,version){
   if(!url)return DEFAULT_APP_ICON;
   const separator=url.includes("?")?"&":"?";
@@ -1098,7 +1111,7 @@ function updateDynamicManifest(iconUrl){
   const manifest={
     name:"Calendário Medicina UFMG — 6º Período — 2026/2",
     short_name:"Medicina UFMG",
-    start_url:"./?build=19",
+    start_url:"./?build=20",
     scope:"./",
     display:"standalone",
     background_color:"#F4F2EC",
@@ -1143,7 +1156,7 @@ function applyAppIcon(siteConfig={}){
       URL.revokeObjectURL(dynamicManifestUrl);
       dynamicManifestUrl="";
     }
-    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=19");
+    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=20");
   }
 
   document.querySelectorAll("[data-app-icon-preview]").forEach(image=>{
@@ -1154,10 +1167,17 @@ function applyAppIcon(siteConfig={}){
 function applyGlobalConfig(config={}){
   const disciplineColors=config.disciplineColor||{};
   const disciplineIcons=config.disciplineIcon||{};
-  const savedDisc=loadDisciplineStyles();
+  const savedDisc={};
 
   Object.keys(S.data.disciplines).forEach(code=>{
     const item=S.data.disciplines[code];
+    const defaults=S.defaultDisciplineStyles[code]||{
+      color:item.color,
+      icon:item.icon||""
+    };
+
+    item.color=defaults.color;
+    item.icon=defaults.icon;
 
     if(/^#[0-9a-f]{6}$/i.test(disciplineColors[code]||"")){
       item.color=disciplineColors[code];
@@ -1173,7 +1193,7 @@ function applyGlobalConfig(config={}){
   localStorage.setItem(DISC_STYLE_KEY,JSON.stringify(savedDisc));
 
   const globalCharts=config.chartColor||{};
-  const charts={...loadChartStyles()};
+  const charts={...DEFAULT_CHART_STYLES};
 
   Object.keys(DEFAULT_CHART_STYLES).forEach(key=>{
     if(/^#[0-9a-f]{6}$/i.test(globalCharts[key]||"")){
@@ -1216,6 +1236,7 @@ async function bootstrapGlobal(silent=false){
   for(let attempt=1;attempt<=3;attempt++){
     try{
       const data=await apiRequest("bootstrap");
+      const apiVersion=assertCurrentApiVersion(data);
       applyGlobalConfig(data.config||{});
       S.data.events=prepareEvents(data.events||[],false);
       const now=new Date();
@@ -1230,7 +1251,9 @@ async function bootstrapGlobal(silent=false){
       S.api={
         status:"ok",
         message:"Sincronização global ativa",
-        updatedAt:now
+        updatedAt:now,
+        version:apiVersion,
+        configRevision:String(data.configRevision||"")
       };
 
       render();
@@ -1359,6 +1382,7 @@ async function uploadAppIconForEveryone(){
       dataUrl:pendingAppIconDataUrl,
       fileName:"icone-calendario.png"
     });
+    assertCurrentApiVersion(result);
 
     applyGlobalConfig(result.config||{});
     pendingAppIconDataUrl="";
@@ -1379,6 +1403,7 @@ async function resetAppIconForEveryone(){
 
   try{
     const result=await apiRequest("resetAppIcon");
+    assertCurrentApiVersion(result);
     pendingAppIconDataUrl="";
     applyGlobalConfig(result.config||{});
     render();
@@ -1409,6 +1434,79 @@ async function refreshAfterSuccessfulWrite(){
   }catch(_){}
 }
 
+
+function queueGlobalStyleItem(item){
+  const mapKey=`${item.category}\u0000${item.key}`;
+  pendingGlobalStyleItems.set(mapKey,item);
+  clearTimeout(styleSaveTimer);
+  styleSaveTimer=setTimeout(flushGlobalStyleQueue,700);
+}
+
+async function flushGlobalStyleQueue(){
+  if(!pendingGlobalStyleItems.size)return;
+
+  const items=[...pendingGlobalStyleItems.values()];
+  pendingGlobalStyleItems.clear();
+
+  try{
+    const result=await apiRequest("saveConfig",{items});
+    assertCurrentApiVersion(result);
+    applyGlobalConfig(result.config||{});
+    S.api.configRevision=String(result.configRevision||"");
+    S.api.updatedAt=new Date();
+    render();
+    toast("Cor sincronizada em todos os dispositivos.");
+  }catch(error){
+    items.forEach(item=>{
+      pendingGlobalStyleItems.set(`${item.category}\u0000${item.key}`,item);
+    });
+    toast(error.message||"Não foi possível sincronizar a cor.");
+  }
+}
+
+async function saveAllStylesForEveryone(){
+  clearTimeout(styleSaveTimer);
+  pendingGlobalStyleItems.clear();
+
+  setButtonBusy("#saveDiscStylesGlobal",true,"Salvando…");
+  setButtonBusy("#saveChartStylesGlobal",true,"Salvando…");
+
+  try{
+    const result=await apiRequest("saveConfig",{
+      items:collectGlobalConfigItems()
+    });
+    assertCurrentApiVersion(result);
+    applyGlobalConfig(result.config||{});
+    S.api.configRevision=String(result.configRevision||"");
+    S.api.updatedAt=new Date();
+    render();
+    toast("Todas as cores e emojis foram sincronizados.");
+  }catch(error){
+    toast(error.message||"Não foi possível salvar as configurações.");
+  }finally{
+    setButtonBusy("#saveDiscStylesGlobal",false);
+    setButtonBusy("#saveChartStylesGlobal",false);
+  }
+}
+
+async function resetDisciplineStylesForEveryone(){
+  if(!confirm("Restaurar as cores e emojis padrão em todos os dispositivos?"))return;
+
+  Object.entries(S.defaultDisciplineStyles).forEach(([code,style])=>{
+    S.data.disciplines[code].color=style.color;
+    S.data.disciplines[code].icon=style.icon;
+  });
+
+  await saveAllStylesForEveryone();
+}
+
+async function resetChartStylesForEveryone(){
+  Object.entries(DEFAULT_CHART_STYLES).forEach(([key,value])=>{
+    saveChartStyle(key,value);
+  });
+  await saveAllStylesForEveryone();
+}
+
 async function saveEventForEveryone(){
   const event=selectedEventFromEditor();
   if(!event)return;
@@ -1436,7 +1534,7 @@ async function saveEventForEveryone(){
   setButtonBusy("#saveEventGlobal",true,"Salvando…");
 
   try{
-    await apiRequest("updateEvent",{
+    const result=await apiRequest("updateEvent",{
       id:event.id,
       date,
       end,
@@ -1444,6 +1542,7 @@ async function saveEventForEveryone(){
       label,
       time
     });
+    assertCurrentApiVersion(result);
 
     const localEdits=loadEventEdits();
     delete localEdits[event._sourceKey];
@@ -1471,7 +1570,8 @@ async function deleteEventForEveryone(){
   setButtonBusy("#deleteEventGlobal",true,"Excluindo…");
 
   try{
-    await apiRequest("deleteEvent",{id:event.id});
+    const result=await apiRequest("deleteEvent",{id:event.id});
+    assertCurrentApiVersion(result);
     toast("Evento excluído para todos os dispositivos.");
     await refreshAfterSuccessfulWrite();
   }catch(error){
@@ -1501,7 +1601,8 @@ async function addEventForEveryone(){
   setButtonBusy("#addEventGlobal",true,"Adicionando…");
 
   try{
-    await apiRequest("addEvent",{date,end,disc:discCode,label,time});
+    const result=await apiRequest("addEvent",{date,end,disc:discCode,label,time});
+    assertCurrentApiVersion(result);
 
     if($("#newEventTitle"))$("#newEventTitle").value="";
     if($("#newEventTime"))$("#newEventTime").value="";
@@ -1517,24 +1618,7 @@ async function addEventForEveryone(){
 }
 
 async function saveStylesForEveryone(){
-  setButtonBusy("#saveDiscStylesGlobal",true,"Salvando…");
-  setButtonBusy("#saveChartStylesGlobal",true,"Salvando…");
-
-  try{
-    const result=await apiRequest("saveConfig",{
-      items:collectGlobalConfigItems()
-    });
-
-    applyGlobalConfig(result.config||{});
-    render();
-    toast("Cores e emojis salvos para todos os dispositivos.");
-    await refreshAfterSuccessfulWrite();
-  }catch(error){
-    toast(error.message||"Não foi possível salvar as configurações.");
-  }finally{
-    setButtonBusy("#saveDiscStylesGlobal",false);
-    setButtonBusy("#saveChartStylesGlobal",false);
-  }
+  return saveAllStylesForEveryone();
 }
 
 function loadDisciplineStyles(){
@@ -1581,8 +1665,24 @@ const TYPE_META={
 function d(s){return new Date(s+"T12:00:00")}
 function fmt(s){const x=d(s);return `${String(x.getDate()).padStart(2,"0")}/${String(x.getMonth()+1).padStart(2,"0")}`}
 function dateKey(s){const [y,m,day]=s.split("-").map(Number);return Date.UTC(y,m-1,day)}
-function todayKey(){const n=new Date();return Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())}
-function calendarDaysUntil(s){return Math.round((dateKey(s)-todayKey())/DAY_MS)}
+function saoPauloTodayParts(){
+  const parts=new Intl.DateTimeFormat("en-US",{
+    timeZone:"America/Sao_Paulo",
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit"
+  }).formatToParts(new Date());
+  const values={};
+  parts.forEach(part=>{if(part.type!=="literal")values[part.type]=Number(part.value)});
+  return values;
+}
+function todayKey(){
+  const p=saoPauloTodayParts();
+  return Date.UTC(p.year,p.month-1,p.day);
+}
+function calendarDaysUntil(s){
+  return (dateKey(s)-todayKey())/DAY_MS;
+}
 function endKey(e){return dateKey(e.end||e.date)}
 function isPast(e){return endKey(e)<todayKey()}
 function isCurrent(e){return dateKey(e.date)<=todayKey()&&endKey(e)>=todayKey()}
@@ -1630,8 +1730,12 @@ function nextEvent(list=S.data.events){
 function countdownText(e){
   if(!e)return {number:"—",unit:"sem eventos"};
   if(isCurrent(e))return {number:"HOJE",unit:e.end&&e.end!==e.date?"em andamento":"é hoje"};
+
   const n=Math.max(0,calendarDaysUntil(e.date));
-  return {number:String(n),unit:n===1?"dia faltando":"dias faltando"};
+
+  if(n===0)return {number:"HOJE",unit:"é hoje"};
+  if(n===1)return {number:"1",unit:"dia faltando"};
+  return {number:String(n),unit:"dias faltando"};
 }
 function setView(view){
   S.view=view;
@@ -1768,7 +1872,7 @@ function shell(){
             </div>
             <div class="eyebrow">${S.data.meta.subtitle}</div>
             <h1>${S.data.meta.title}</h1>
-            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V19 SYNC CORRIGIDO</div>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V20 CORES + CONTAGEM</div>
           </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -2227,7 +2331,7 @@ function settings(){
         <div class="api-heading">
           <div>
             <b>🌐 Sincronização automática em todos os dispositivos</b>
-            <div class="label">Não é necessário inserir chave. As mudanças chegam aos aparelhos ao abrir o site e, enquanto ele estiver aberto, em até 30 segundos.</div>
+            <div class="label">Não é necessário inserir chave. As mudanças chegam aos aparelhos ao abrir o site e, enquanto ele estiver aberto, em até 15 segundos.</div>
           </div>
           <div class="api-status">${apiStatusLabel()}</div>
         </div>
@@ -2261,17 +2365,17 @@ function settings(){
 
       <div class="setting setting-disciplines">
         <b>🎨 Cores e emojis das disciplinas — PERSONALIZAÇÃO ATIVA</b>
-        <div class="label">Escolha uma cor e um emoji para cada matéria. A mudança aparece em todo o site imediatamente.</div>
+        <div class="label">Escolha uma cor e um emoji. A alteração é salva automaticamente para todos os aparelhos.</div>
         <div id="disciplineStyleEditor" class="discipline-style-editor"></div>
         <div class="actions">
           <button id="saveDiscStylesGlobal" class="sheet-btn primary" type="button">Salvar cores e emojis para todos</button>
           <button id="resetDiscStyles" class="sheet-btn" type="button">Restaurar cores e emojis padrão</button>
         </div>
-        <div class="sheet-note">A prévia muda imediatamente. Clique em “Salvar para todos” para sincronizar nos outros aparelhos.</div>
+        <div class="sheet-note">A sincronização é automática. O botão abaixo força o salvamento de todas as cores de uma vez.</div>
       </div>
       <div class="setting setting-chart-colors">
         <b>📊 Cores das barras e gráficos</b>
-        <div class="label">Personalize as cores de concluídas, pendentes e da barra de progresso do semestre.</div>
+        <div class="label">Personalize as cores. Elas são salvas automaticamente para todos os aparelhos.</div>
         <div id="chartStyleEditor" class="chart-style-editor"></div>
         <div class="actions">
           <button id="saveChartStylesGlobal" class="sheet-btn primary" type="button">Salvar cores dos gráficos para todos</button>
@@ -2324,6 +2428,7 @@ function settings(){
           <button id="addEventGlobal" class="sheet-btn primary" type="button">Adicionar para todos os dispositivos</button>
         </div>
       </div>
+      <div class="setting"><b>⏳ Contagem de dias</b><div class="label">Usa sempre a data de São Paulo: dia 5 para atividade dia 6 = 1 dia; no próprio dia 6 = HOJE. Não usa horas nem cronômetro.</div></div>
       <div class="setting"><b>Google Planilhas</b><div class="label">O site lê e grava diretamente na planilha central, sem solicitar chave nos aparelhos.</div></div>
       <div class="setting"><b>Funcionamento offline</b><div class="label">Sem internet, o site mantém a última cópia local disponível.</div></div>
       <div class="setting"><label><span><b>Limpar favoritos e marcações</b><div class="label">Remove apenas dados salvos neste navegador.</div></span><button id="reset" class="ctrl btn">Limpar</button></label></div>
@@ -2362,14 +2467,19 @@ function bind(){
   if($("#appIconFile"))$("#appIconFile").onchange=previewSelectedAppIcon;
   if($("#saveAppIconGlobal"))$("#saveAppIconGlobal").onclick=uploadAppIconForEveryone;
   if($("#resetAppIconGlobal"))$("#resetAppIconGlobal").onclick=resetAppIconForEveryone;
-  $$(".disc-color-input").forEach(input=>input.oninput=()=>{
+  $$(".disc-color-input").forEach(input=>input.onchange=()=>{
     const code=input.dataset.code;
     const item=S.data.disciplines[code];
     if(!item)return;
     item.color=input.value;
     saveDisciplineStyle(code,item.color,item.icon||"");
+    queueGlobalStyleItem({
+      category:"disciplineColor",
+      key:code,
+      value:item.color
+    });
     render();
-    toast(`Cor de ${item.short||item.name} atualizada`);
+    toast(`Salvando a cor de ${item.short||item.name}…`);
   });
 
   $$(".disc-emoji-input").forEach(input=>{
@@ -2380,33 +2490,37 @@ function bind(){
       const value=input.value.trim()||"📚";
       item.icon=value;
       saveDisciplineStyle(code,item.color,value);
+      queueGlobalStyleItem({
+        category:"disciplineIcon",
+        key:code,
+        value:value
+      });
       render();
-      toast(`Emoji de ${item.short||item.name} atualizado`);
+      toast(`Salvando o emoji de ${item.short||item.name}…`);
     };
     input.onkeydown=event=>{
       if(event.key==="Enter")input.blur();
     };
   });
 
-  if($("#resetDiscStyles"))$("#resetDiscStyles").onclick=()=>{
-    if(confirm("Restaurar todas as cores e emojis padrão?"))resetDisciplineStyles();
-  };
+  if($("#resetDiscStyles"))$("#resetDiscStyles").onclick=resetDisciplineStylesForEveryone;
 
   if($("#saveDiscStylesGlobal"))$("#saveDiscStylesGlobal").onclick=saveStylesForEveryone;
   if($("#saveChartStylesGlobal"))$("#saveChartStylesGlobal").onclick=saveStylesForEveryone;
 
-  $$(".chart-color-input").forEach(input=>input.oninput=()=>{
-    saveChartStyle(input.dataset.chartColor,input.value);
-    const small=input.closest(".chart-color-row")?.querySelector("small");
-    if(small)small.textContent=input.value;
+  $$(".chart-color-input").forEach(input=>input.onchange=()=>{
+    const key=input.dataset.chartColor;
+    saveChartStyle(key,input.value);
+    queueGlobalStyleItem({
+      category:"chartColor",
+      key:key,
+      value:input.value
+    });
+    render();
+    toast("Salvando a cor do gráfico…");
   });
 
-  if($("#resetChartStyles"))$("#resetChartStyles").onclick=()=>{
-    resetChartStyles();
-    settings();
-    bind();
-    toast("Cores dos gráficos restauradas.");
-  };
+  if($("#resetChartStyles"))$("#resetChartStyles").onclick=resetChartStylesForEveryone;
 
   if($("#eventEditorSelect"))$("#eventEditorSelect").onchange=()=>{
     fillEventEditor(selectedEventFromEditor());
@@ -2535,9 +2649,15 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=19",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=20",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
+    S.defaultDisciplineStyles=Object.fromEntries(
+      Object.entries(x.disciplines).map(([code,item])=>[
+        code,
+        {color:item.color,icon:item.icon||""}
+      ])
+    );
     applySavedDisciplineStyles();
     applyChartStyles();
     S.data.events=prepareEvents(S.data.events);
@@ -2550,9 +2670,11 @@ document.addEventListener("DOMContentLoaded",async()=>{
     await loadRemoteEvents(true);
     await bootstrapGlobal(true);
 
-    setInterval(renderCountdown,60000);
-    const refreshSeconds=30;
-    setInterval(()=>refreshCurrentSource(true),refreshSeconds*1000);
+    setInterval(renderCountdown,30000);
+    const refreshSeconds=15;
+    setInterval(()=>{
+      if(!pendingGlobalStyleItems.size)refreshCurrentSource(true);
+    },refreshSeconds*1000);
     document.addEventListener("visibilitychange",()=>{
       if(document.visibilityState==="visible")refreshCurrentSource(true);
     });
