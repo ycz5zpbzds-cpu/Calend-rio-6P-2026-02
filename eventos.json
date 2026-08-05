@@ -1,0 +1,571 @@
+{
+  "disciplines": {
+    "AP": {
+      "name": "Anatomia Patológica",
+      "color": "#7C3AED"
+    },
+    "PED": {
+      "name": "Pediatria III",
+      "color": "#059669"
+    },
+    "CLM": {
+      "name": "Clínica Médica III",
+      "color": "#EA580C"
+    },
+    "CIR": {
+      "name": "Cirurgia II",
+      "color": "#DC2626"
+    },
+    "PC2": {
+      "name": "Patologia Clínica 2",
+      "color": "#2563EB"
+    },
+    "GOB": {
+      "name": "Ginecologia Básica",
+      "color": "#DB2777"
+    },
+    "GERAL": {
+      "name": "Semana de provas (geral)",
+      "color": "#94A3B8"
+    }
+  },
+  "events": [
+    {
+      "date": "2026-08-10",
+      "disc": "PED",
+      "label": "GD avaliativo — Atraso DNPM e TEA",
+      "end": "2026-08-13"
+    },
+    {
+      "date": "2026-08-29",
+      "disc": "AP",
+      "label": "Prova Modular 1 — Sistema Genital",
+      "time": "sáb, 10h–11h30"
+    },
+    {
+      "date": "2026-09-14",
+      "disc": "PED",
+      "label": "Salto Triplo (atividade avaliativa)",
+      "end": "2026-09-17"
+    },
+    {
+      "date": "2026-09-26",
+      "disc": "AP",
+      "label": "Prova Modular 2 — Sistema Nervoso",
+      "time": "sáb, 10h–10h30"
+    },
+    {
+      "date": "2026-10-01",
+      "disc": "AP",
+      "label": "2ª chamada — Genital e Urinário",
+      "time": "sex, 12h–13h30"
+    },
+    {
+      "date": "2026-10-01",
+      "disc": "PC2",
+      "label": "Avaliação parcial"
+    },
+    {
+      "date": "2026-10-05",
+      "disc": "PED",
+      "label": "Prova parcial (60 min, início da aula)",
+      "end": "2026-10-08"
+    },
+    {
+      "date": "2026-10-05",
+      "disc": "GOB",
+      "label": "AV1 — Prova Parcial",
+      "time": "seg, 18h–20h"
+    },
+    {
+      "date": "2026-10-06",
+      "disc": "CIR",
+      "label": "AV1 — Avaliação parcial (Clínica Cirúrgica)",
+      "time": "14h–15h30, Turma A e C"
+    },
+    {
+      "date": "2026-10-24",
+      "disc": "AP",
+      "label": "Prova Modular 3 — Genito-Urinário",
+      "time": "sáb, 10h–11h30"
+    },
+    {
+      "date": "2026-10-25",
+      "disc": "CLM",
+      "label": "Atividade Integradora (tarde) — data a confirmar"
+    },
+    {
+      "date": "2026-10-26",
+      "disc": "PED",
+      "label": "Atividade Integradora — 1º Caso"
+    },
+    {
+      "date": "2026-10-26",
+      "disc": "CIR",
+      "label": "AV6 — Atividade Integradora",
+      "end": "2026-10-27"
+    },
+    {
+      "date": "2026-10-26",
+      "disc": "GOB",
+      "label": "AV6 — Atividade Integradora",
+      "end": "2026-10-27"
+    },
+    {
+      "date": "2026-10-27",
+      "disc": "PED",
+      "label": "Atividade Integradora — 2º Caso"
+    },
+    {
+      "date": "2026-10-27",
+      "disc": "CLM",
+      "label": "Atividade Integradora (manhã) — data a confirmar"
+    },
+    {
+      "date": "2026-11-09",
+      "disc": "GOB",
+      "label": "AV2 — Mini OSCE (sem ambulatório)",
+      "end": "2026-11-12"
+    },
+    {
+      "date": "2026-11-13",
+      "disc": "CIR",
+      "label": "AV4 — Avaliação teórica Cirurgia Ambulatorial",
+      "end": "2026-11-19",
+      "time": "15h, sala 150"
+    },
+    {
+      "date": "2026-11-24",
+      "disc": "PED",
+      "label": "Prova final"
+    },
+    {
+      "date": "2026-11-24",
+      "disc": "GERAL",
+      "label": "Semana de provas finais (geral)",
+      "end": "2026-12-02"
+    },
+    {
+      "date": "2026-11-25",
+      "disc": "AP",
+      "label": "Prova Modular 4 — Tópicos",
+      "time": "8h–9h30, Salão Nobre/Sala 138"
+    },
+    {
+      "date": "2026-11-26",
+      "disc": "CLM",
+      "label": "Prova final (data provável)"
+    },
+    {
+      "date": "2026-11-27",
+      "disc": "CIR",
+      "label": "AV2 — Avaliação final (Clínica Cirúrgica)",
+      "time": "13h–14h30"
+    },
+    {
+      "date": "2026-11-30",
+      "disc": "GOB",
+      "label": "Prazo final AV7–AV13 (atividades Moodle)"
+    },
+    {
+      "date": "2026-12-03",
+      "disc": "AP",
+      "label": "2ª chamada — Nervoso e Tópicos",
+      "time": "9h–10h"
+    },
+    {
+      "date": "2026-12-07",
+      "disc": "AP",
+      "label": "Exame especial"
+    },
+    {
+      "date": "2026-12-07",
+      "disc": "CLM",
+      "label": "Exame especial (a confirmar)"
+    },
+    {
+      "date": "2026-08-04",
+      "disc": "CIR",
+      "label": "AT1 Conveniência/Avaliação Pré-op + Aula Inaugural + AT2 Avaliação anestesiológica",
+      "time": "13h15–17h15"
+    },
+    {
+      "date": "2026-08-11",
+      "disc": "CIR",
+      "label": "AT3 Resposta Orgânica ao Trauma + GD1 (AT1–AT2)",
+      "time": "13h15–16h"
+    },
+    {
+      "date": "2026-08-18",
+      "disc": "CIR",
+      "label": "AT4 Preparo pré-op geral + GD2 (AT3) + AT5 Preparo pré-op especial",
+      "time": "13h15–17h15"
+    },
+    {
+      "date": "2026-08-25",
+      "disc": "CIR",
+      "label": "AT6 Cirurgia no paciente Hipertenso/Cardiopata + GD3 (AT4–AT5)",
+      "time": "13h15–16h"
+    },
+    {
+      "date": "2026-09-01",
+      "disc": "CIR",
+      "label": "AT7 Cirurgia no paciente Diabético + GD4 (AT6) + AT8 Cirurgia no paciente Desnutrido",
+      "time": "13h15–17h15"
+    },
+    {
+      "date": "2026-09-08",
+      "disc": "CIR",
+      "label": "AT9 Cirurgia no paciente Oncológico + GD5 (AT7–AT8)",
+      "time": "13h15–16h"
+    },
+    {
+      "date": "2026-09-15",
+      "disc": "CIR",
+      "label": "AT10 Cirurgia hepatopata/ictérico/alcoolista + GD6 (AT9) + AT11 Febre e infecção do sítio cirúrgico",
+      "time": "13h15–17h15"
+    },
+    {
+      "date": "2026-09-22",
+      "disc": "CIR",
+      "label": "AT12 Antibioticoprofilaxia em cirurgia + GD7 (AT10)",
+      "time": "13h15–16h"
+    },
+    {
+      "date": "2026-09-29",
+      "disc": "CIR",
+      "label": "AT13 Assistência médica pós-op + GD8 (AT11–AT12)",
+      "time": "13h15–16h"
+    },
+    {
+      "date": "2026-10-13",
+      "disc": "CIR",
+      "label": "AT14 Hidratação venosa perioperatória + GD9 (AT13)",
+      "time": "13h15–16h"
+    },
+    {
+      "date": "2026-10-20",
+      "disc": "CIR",
+      "label": "AT15 Complicações pós-op respiratórias/cardiovasculares + GD10 (AT14)",
+      "time": "13h15–16h"
+    },
+    {
+      "date": "2026-10-27",
+      "disc": "CIR",
+      "label": "AT16 Complicações pós-op digestivas + GD11 (AT15)",
+      "time": "13h15–16h"
+    },
+    {
+      "date": "2026-11-03",
+      "disc": "CIR",
+      "label": "AT17 Complicações pós-op urológicas + GD12 (AT16) + AT18 Profilaxia/tratamento TVP-TEP",
+      "time": "13h15–17h15"
+    },
+    {
+      "date": "2026-11-10",
+      "disc": "CIR",
+      "label": "GD13 (AT17–AT18)",
+      "time": "13h15–14h15"
+    },
+    {
+      "date": "2026-11-17",
+      "disc": "CIR",
+      "label": "Recesso — sem GD",
+      "time": "14h30–16h"
+    },
+    {
+      "date": "2026-08-06",
+      "disc": "CIR",
+      "label": "GD+Triagem: A1 e A2 · Bloco/procedimentos: A3 e A4",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-08-13",
+      "disc": "CIR",
+      "label": "GD1+Triagem: A3 e A4 · Bloco/procedimentos: A1 e A2",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-08-20",
+      "disc": "CIR",
+      "label": "GD2+Triagem: A1 e A2 · Bloco/procedimentos: A3 e A4",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-08-27",
+      "disc": "CIR",
+      "label": "GD3+Triagem: A3 e A4 · Bloco/procedimentos: A1 e A2",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-09-03",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial (subgrupo A1–A4 não publicado na escala oficial)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-09-10",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial (subgrupo não publicado)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-09-17",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial (subgrupo não publicado)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-09-24",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial (subgrupo não publicado)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-10-01",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial (subgrupo não publicado)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-10-08",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial (subgrupo não publicado)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-10-15",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial (subgrupo não publicado)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-10-22",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial (subgrupo não publicado)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-10-29",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial (subgrupo não publicado)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-11-05",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial (subgrupo não publicado)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-11-12",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial (subgrupo não publicado)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-11-19",
+      "disc": "CIR",
+      "label": "Cirurgia Ambulatorial — checar c/ coordenação (semana de recesso da CC)",
+      "time": "13h30–17h30"
+    },
+    {
+      "date": "2026-08-04",
+      "disc": "CLM",
+      "label": "Aula inicial — não marcar atendimentos",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-08-07",
+      "disc": "CLM",
+      "label": "Consultas de rotina (sem GD)",
+      "time": "3 consultas 7h30 · base 2025"
+    },
+    {
+      "date": "2026-08-11",
+      "disc": "CLM",
+      "label": "GD 1 — Manifestações primárias do aparelho respiratório",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-08-14",
+      "disc": "CLM",
+      "label": "GD 2 — Manifestações secundárias do aparelho respiratório",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-08-18",
+      "disc": "CLM",
+      "label": "GD 3 — Principais síndromes pulmonares",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-08-21",
+      "disc": "CLM",
+      "label": "GD 4 — DPOC: manifestações clínicas",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-08-25",
+      "disc": "CLM",
+      "label": "GD 5 — Pneumonia adquirida na comunidade",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-08-28",
+      "disc": "CLM",
+      "label": "GD 6 — Insuficiência cardíaca (1)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-09-01",
+      "disc": "CLM",
+      "label": "GD 7 — Insuficiência cardíaca (2)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-09-04",
+      "disc": "CLM",
+      "label": "GD 8 — Insuficiência cardíaca (3)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-09-08",
+      "disc": "CLM",
+      "label": "GD 9 — Valvopatias atrioventriculares",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-09-11",
+      "disc": "CLM",
+      "label": "GD 10 — Valvopatias semilunares",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-09-15",
+      "disc": "CLM",
+      "label": "Prova Parcial (local, ambulatório) — não é a prova escrita da disciplina",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-09-18",
+      "disc": "CLM",
+      "label": "GD 11 — Abordagem do paciente com hepatopatia",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-09-22",
+      "disc": "CLM",
+      "label": "GD 12 — Abordagem do paciente com ascite",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-09-25",
+      "disc": "CLM",
+      "label": "GD 13 — Hemorragia digestiva",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-09-29",
+      "disc": "CLM",
+      "label": "GD 14 — Semiologia do aparelho locomotor 1 (planilha-base cita 'prova parcial' em paralelo — checar)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-10-02",
+      "disc": "CLM",
+      "label": "GD 15 — Semiologia do aparelho locomotor 2",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-10-06",
+      "disc": "CLM",
+      "label": "GD 16 — Semiologia neurológica 1",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-10-09",
+      "disc": "CLM",
+      "label": "GD 17 — Semiologia neurológica 2",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-10-13",
+      "disc": "CLM",
+      "label": "GD (tema não informado na planilha-base)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-10-16",
+      "disc": "CLM",
+      "label": "GD (tema não informado na planilha-base)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-10-20",
+      "disc": "CLM",
+      "label": "GD (tema não informado na planilha-base)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-10-23",
+      "disc": "CLM",
+      "label": "Não marcar atendimentos — visita ao hospital",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-10-27",
+      "disc": "CLM",
+      "label": "Não marcar atendimentos — Atividade Integradora",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-10-30",
+      "disc": "CLM",
+      "label": "Não marcar atendimentos — visita ao hospital",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-11-03",
+      "disc": "CLM",
+      "label": "GD (tema não informado na planilha-base)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-11-06",
+      "disc": "CLM",
+      "label": "GD (tema não informado na planilha-base)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-11-10",
+      "disc": "CLM",
+      "label": "GD (tema não informado na planilha-base)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-11-13",
+      "disc": "CLM",
+      "label": "GD (tema não informado na planilha-base)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-11-17",
+      "disc": "CLM",
+      "label": "GD (tema não informado na planilha-base)",
+      "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-11-20",
+      "disc": "CLM",
+      "label": "Feriado — Consciência Negra (não marcar)",
+      "time": "confirmado no calendário oficial"
+    },
+    {
+      "date": "2026-11-24",
+      "disc": "CLM",
+      "label": "Semana de provas finais (sem atendimento)",
+      "time": "base 2025 · a confirmar"
+    }
+  ]
+}
