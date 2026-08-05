@@ -10,6 +10,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=18">
+  <link id="appFavicon" rel="icon" href="./icon.svg?v=18" type="image/svg+xml">
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=18">
   <title>Calendário Medicina UFMG — 6º Período — 2026/2</title>
   <style>
 :root{
@@ -751,7 +754,7 @@ h1{margin:10px 0 7px;font-size:35px;line-height:1.04;letter-spacing:-.025em}
 }
 
 
-/* ===== V17: reconexão persistente pela API do Apps Script ===== */
+/* ===== V18: API pública e ícone global ===== */
 .setting-api,.setting-add-event{grid-column:1/-1}
 .setting-api{
   border:2px solid color-mix(in srgb,var(--accent) 38%,var(--line));
@@ -815,6 +818,65 @@ body.dark .sheet-btn.danger{
   .add-event-grid{grid-template-columns:1fr}
 }
 
+
+/* ===== V18: API pública e ícone global ===== */
+.setting-app-icon{grid-column:1/-1}
+.danger-note{
+  border-left:4px solid #dc2626;
+  padding-left:10px;
+}
+.app-icon-editor{
+  display:grid;
+  grid-template-columns:150px minmax(0,1fr);
+  gap:18px;
+  align-items:center;
+}
+.app-icon-preview-wrap{
+  width:150px;
+  aspect-ratio:1;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--line);
+  border-radius:30px;
+  background:var(--panel);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.app-icon-preview-wrap img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  padding:10px;
+}
+.app-icon-copy{min-width:0}
+.icon-file-label{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  margin-top:13px;
+  border:1px dashed var(--line);
+  border-radius:13px;
+  padding:13px;
+  background:var(--panel);
+  font-weight:800;
+  cursor:pointer;
+}
+.icon-file-label input{
+  position:absolute;
+  width:1px;
+  height:1px;
+  opacity:0;
+  pointer-events:none;
+}
+.sheet-btn:disabled{
+  opacity:.6;
+  cursor:wait;
+}
+@media(max-width:700px){
+  .app-icon-editor{grid-template-columns:1fr}
+  .app-icon-preview-wrap{width:128px;margin:auto}
+}
+
 </style>
 </head>
 <body>
@@ -845,15 +907,17 @@ const S={
   completed:new Set(JSON.parse(localStorage.getItem("done")||"[]")),
   weekOffset:0,
   sync:{status:"loading",message:"Carregando planilha…",updatedAt:null,remoteCount:0},
-  api:{status:"disconnected",message:"Chave ainda não configurada.",updatedAt:null}
+  api:{status:"loading",message:"Conectando automaticamente…",updatedAt:null},
+  appIcon:{url:"./icon.svg?v=18",updatedAt:"",custom:false}
 };
 
 const DISC_STYLE_KEY="medicinaUFMG_discStyles_v1";
 
 const CHART_STYLE_KEY="medicinaUFMG_chartStyles_v1";
 const EVENT_EDIT_KEY="medicinaUFMG_eventEdits_v1";
-const API_SECRET_STORAGE_KEY="medicinaUFMG_apiSecret_v1";
-const API_LAST_SUCCESS_KEY="medicinaUFMG_apiLastSuccess_v1";
+const DEFAULT_APP_ICON="./icon.svg?v=18";
+let dynamicManifestUrl="";
+let pendingAppIconDataUrl="";
 
 const DEFAULT_CHART_STYLES={
   completed:"#10b981",
@@ -943,12 +1007,8 @@ function resetAllLocalEventEdits(){
 
 
 
-function getApiSecret(){
-  return localStorage.getItem(API_SECRET_STORAGE_KEY)||"";
-}
-
 function apiIsConnected(){
-  return S.api.status==="ok"&&!!getApiSecret();
+  return S.api.status==="ok";
 }
 
 function apiStatusLabel(){
@@ -956,19 +1016,12 @@ function apiStatusLabel(){
     const time=S.api.updatedAt
       ? S.api.updatedAt.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})
       : "";
-    return `<span class="api-dot ok"></span><span><b>Conectado</b>${time?` · sincronizado às ${time}`:""}</span>`;
+    return `<span class="api-dot ok"></span><span><b>Sincronização automática ativa</b>${time?` · ${time}`:""}</span>`;
   }
   if(S.api.status==="loading"){
-    return `<span class="api-dot loading"></span><span><b>Conectando…</b></span>`;
+    return `<span class="api-dot loading"></span><span><b>Conectando automaticamente…</b></span>`;
   }
-  if(S.api.status==="error"){
-    const saved=getApiSecret()?" · a chave continua salva neste aparelho":"";
-    return `<span class="api-dot error"></span><span><b>Falha temporária na conexão</b> · ${S.api.message||"tente reconectar"}${saved}</span>`;
-  }
-  if(getApiSecret()){
-    return `<span class="api-dot loading"></span><span><b>Chave salva</b> · aguardando reconexão automática</span>`;
-  }
-  return `<span class="api-dot"></span><span><b>Não conectado</b> · informe a chave secreta abaixo</span>`;
+  return `<span class="api-dot error"></span><span><b>Falha temporária</b> · ${S.api.message||"tente atualizar novamente"}</span>`;
 }
 
 function wait(ms){
@@ -976,20 +1029,17 @@ function wait(ms){
 }
 
 async function apiRequest(action,payload={}){
-  const secret=getApiSecret();
-  if(!secret)throw new Error("Digite e salve a chave secreta primeiro.");
-
   const endpoint=S.data?.meta?.apiUrl;
   if(!endpoint)throw new Error("Endereço da API não configurado.");
 
   const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),18000);
+  const timeout=setTimeout(()=>controller.abort(),25000);
 
   try{
     const response=await fetch(endpoint,{
       method:"POST",
       headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({action,secret,...payload}),
+      body:JSON.stringify({action,...payload}),
       cache:"no-store",
       redirect:"follow",
       signal:controller.signal
@@ -1001,6 +1051,7 @@ async function apiRequest(action,payload={}){
 
     const text=await response.text();
     let data;
+
     try{
       data=JSON.parse(text);
     }catch(_){
@@ -1022,6 +1073,84 @@ async function apiRequest(action,payload={}){
   }
 }
 
+function appendVersion(url,version){
+  if(!url)return DEFAULT_APP_ICON;
+  const separator=url.includes("?")?"&":"?";
+  return `${url}${separator}v=${encodeURIComponent(version||Date.now())}`;
+}
+
+function ensureHeadLink(id,rel,href,type=""){
+  let link=document.getElementById(id);
+
+  if(!link){
+    link=document.createElement("link");
+    link.id=id;
+    link.rel=rel;
+    document.head.appendChild(link);
+  }
+
+  link.href=href;
+  if(type)link.type=type;
+  return link;
+}
+
+function updateDynamicManifest(iconUrl){
+  const manifest={
+    name:"Calendário Medicina UFMG — 6º Período — 2026/2",
+    short_name:"Medicina UFMG",
+    start_url:"./?build=18",
+    scope:"./",
+    display:"standalone",
+    background_color:"#F4F2EC",
+    theme_color:"#111827",
+    icons:[
+      {
+        src:iconUrl,
+        sizes:"512x512",
+        type:"image/png",
+        purpose:"any maskable"
+      }
+    ]
+  };
+
+  if(dynamicManifestUrl)URL.revokeObjectURL(dynamicManifestUrl);
+  dynamicManifestUrl=URL.createObjectURL(
+    new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"})
+  );
+  ensureHeadLink("appManifest","manifest",dynamicManifestUrl);
+}
+
+function applyAppIcon(siteConfig={}){
+  const rawUrl=String(siteConfig.appIconUrl||"").trim();
+  const updatedAt=String(siteConfig.appIconUpdatedAt||"");
+  const custom=!!rawUrl;
+  const iconUrl=custom?appendVersion(rawUrl,updatedAt):DEFAULT_APP_ICON;
+
+  S.appIcon={url:iconUrl,updatedAt,custom};
+
+  ensureHeadLink(
+    "appFavicon",
+    "icon",
+    iconUrl,
+    custom?"image/png":"image/svg+xml"
+  );
+  ensureHeadLink("appleTouchIcon","apple-touch-icon",iconUrl);
+
+  if(custom){
+    updateDynamicManifest(iconUrl);
+  }else{
+    if(dynamicManifestUrl){
+      URL.revokeObjectURL(dynamicManifestUrl);
+      dynamicManifestUrl="";
+    }
+    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=18");
+  }
+
+  document.querySelectorAll("[data-app-icon-preview]").forEach(image=>{
+    image.src=iconUrl;
+  });
+}
+
 function applyGlobalConfig(config={}){
   const disciplineColors=config.disciplineColor||{};
   const disciplineIcons=config.disciplineIcon||{};
@@ -1029,25 +1158,32 @@ function applyGlobalConfig(config={}){
 
   Object.keys(S.data.disciplines).forEach(code=>{
     const item=S.data.disciplines[code];
+
     if(/^#[0-9a-f]{6}$/i.test(disciplineColors[code]||"")){
       item.color=disciplineColors[code];
     }
+
     if(typeof disciplineIcons[code]==="string"&&disciplineIcons[code].trim()){
       item.icon=disciplineIcons[code].trim();
     }
+
     savedDisc[code]={color:item.color,icon:item.icon||""};
   });
+
   localStorage.setItem(DISC_STYLE_KEY,JSON.stringify(savedDisc));
 
   const globalCharts=config.chartColor||{};
   const charts={...loadChartStyles()};
+
   Object.keys(DEFAULT_CHART_STYLES).forEach(key=>{
     if(/^#[0-9a-f]{6}$/i.test(globalCharts[key]||"")){
       charts[key]=globalCharts[key];
     }
   });
+
   localStorage.setItem(CHART_STYLE_KEY,JSON.stringify(charts));
   applyChartStyles();
+  applyAppIcon(config.site||{});
 }
 
 function collectGlobalConfigItems(){
@@ -1059,6 +1195,7 @@ function collectGlobalConfigItems(){
   });
 
   const chartColors=loadChartStyles();
+
   Object.entries(chartColors).forEach(([key,value])=>{
     items.push({category:"chartColor",key,value});
   });
@@ -1067,15 +1204,9 @@ function collectGlobalConfigItems(){
 }
 
 async function bootstrapGlobal(silent=false){
-  if(!getApiSecret()){
-    S.api={status:"disconnected",message:"Chave ainda não configurada.",updatedAt:null};
-    render();
-    return false;
-  }
-
   S.api={
     status:"loading",
-    message:"Reconectando automaticamente…",
+    message:"Conectando automaticamente…",
     updatedAt:S.api.updatedAt||null
   };
   render();
@@ -1095,19 +1226,20 @@ async function bootstrapGlobal(silent=false){
         updatedAt:now,
         remoteCount:S.data.events.length
       };
+
       S.api={
         status:"ok",
         message:"Sincronização global ativa",
         updatedAt:now
       };
-      localStorage.setItem(API_LAST_SUCCESS_KEY,now.toISOString());
+
       render();
 
       if(!silent)toast("Dados sincronizados em todos os dispositivos.");
       return true;
     }catch(error){
       lastError=error;
-      if(attempt<3)await wait(attempt*900);
+      if(attempt<3)await wait(attempt*1000);
     }
   }
 
@@ -1116,41 +1248,144 @@ async function bootstrapGlobal(silent=false){
     message:lastError?.message||"Não foi possível conectar agora.",
     updatedAt:null
   };
+
   render();
 
   if(!silent){
-    toast(`${S.api.message} A chave continua salva; toque em “Reconectar”.`);
+    toast(`${S.api.message} Mantive a última cópia disponível.`);
   }
+
   return false;
 }
 
-async function connectGlobalApi(){
-  const input=$("#apiSecretInput");
-  const secret=(input?.value||"").trim();
+async function refreshCurrentSource(silent=false){
+  return bootstrapGlobal(silent);
+}
 
-  if(secret){
-    localStorage.setItem(API_SECRET_STORAGE_KEY,secret);
+function readFileAsDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result||""));
+    reader.onerror=()=>reject(new Error("Não foi possível ler a imagem."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageFromUrl(url){
+  return new Promise((resolve,reject)=>{
+    const image=new Image();
+    image.onload=()=>resolve(image);
+    image.onerror=()=>reject(new Error("Não foi possível abrir a imagem."));
+    image.src=url;
+  });
+}
+
+async function prepareAppIconFile(file){
+  if(!file)throw new Error("Escolha uma imagem.");
+  if(file.size>8*1024*1024)throw new Error("A imagem original deve ter no máximo 8 MB.");
+  if(!/^image\/(png|jpeg|webp|svg\+xml)$/i.test(file.type)){
+    throw new Error("Use PNG, JPG, WEBP ou SVG.");
   }
 
-  if(!getApiSecret()){
-    toast("Digite sua chave secreta.");
+  const sourceUrl=await readFileAsDataUrl(file);
+  const image=await loadImageFromUrl(sourceUrl);
+  const canvas=document.createElement("canvas");
+  const size=512;
+  const padding=32;
+
+  canvas.width=size;
+  canvas.height=size;
+
+  const context=canvas.getContext("2d");
+  context.clearRect(0,0,size,size);
+  context.imageSmoothingEnabled=true;
+  context.imageSmoothingQuality="high";
+
+  const available=size-padding*2;
+  const scale=Math.min(available/image.naturalWidth,available/image.naturalHeight);
+  const width=Math.max(1,Math.round(image.naturalWidth*scale));
+  const height=Math.max(1,Math.round(image.naturalHeight*scale));
+  const x=Math.round((size-width)/2);
+  const y=Math.round((size-height)/2);
+
+  context.drawImage(image,x,y,width,height);
+  const dataUrl=canvas.toDataURL("image/png");
+
+  if(dataUrl.length>2.7*1024*1024){
+    throw new Error("A imagem ficou grande demais depois do processamento.");
+  }
+
+  return dataUrl;
+}
+
+async function previewSelectedAppIcon(){
+  const input=$("#appIconFile");
+  const file=input?.files?.[0];
+
+  if(!file){
+    pendingAppIconDataUrl="";
     return;
   }
 
-  await bootstrapGlobal(false);
+  try{
+    pendingAppIconDataUrl=await prepareAppIconFile(file);
+    const preview=$("#appIconPreview");
+    if(preview)preview.src=pendingAppIconDataUrl;
+    const name=$("#appIconFileName");
+    if(name)name.textContent=`Pronto para salvar: ${file.name}`;
+  }catch(error){
+    pendingAppIconDataUrl="";
+    if(input)input.value="";
+    toast(error.message||"Não foi possível preparar a imagem.");
+  }
 }
 
-function forgetGlobalApi(){
-  localStorage.removeItem(API_SECRET_STORAGE_KEY);
-  localStorage.removeItem(API_LAST_SUCCESS_KEY);
-  S.api={status:"disconnected",message:"Chave removida deste aparelho.",updatedAt:null};
-  render();
-  toast("Chave removida deste aparelho.");
+async function uploadAppIconForEveryone(){
+  const input=$("#appIconFile");
+  const file=input?.files?.[0];
+
+  try{
+    if(!pendingAppIconDataUrl){
+      pendingAppIconDataUrl=await prepareAppIconFile(file);
+    }
+
+    const button=$("#saveAppIconGlobal");
+    if(button){
+      button.disabled=true;
+      button.textContent="Enviando…";
+    }
+
+    const result=await apiRequest("uploadAppIcon",{
+      dataUrl:pendingAppIconDataUrl,
+      fileName:"icone-calendario.png"
+    });
+
+    applyGlobalConfig(result.config||{});
+    pendingAppIconDataUrl="";
+    render();
+    toast("Ícone salvo para todos os dispositivos.");
+  }catch(error){
+    toast(error.message||"Não foi possível salvar o ícone.");
+    const button=$("#saveAppIconGlobal");
+    if(button){
+      button.disabled=false;
+      button.textContent="Salvar ícone para todos";
+    }
+  }
 }
 
-async function refreshCurrentSource(silent=false){
-  if(getApiSecret())return bootstrapGlobal(silent);
-  return loadRemoteEvents(silent);
+async function resetAppIconForEveryone(){
+  if(!confirm("Restaurar o ícone padrão para todos os dispositivos?"))return;
+
+  try{
+    const result=await apiRequest("resetAppIcon");
+    pendingAppIconDataUrl="";
+    applyGlobalConfig(result.config||{});
+    render();
+    toast("Ícone padrão restaurado.");
+  }catch(error){
+    toast(error.message||"Não foi possível restaurar o ícone.");
+  }
 }
 
 async function saveEventForEveryone(){
@@ -1158,7 +1393,7 @@ async function saveEventForEveryone(){
   if(!event)return;
 
   if(!event.id){
-    toast("Conecte a sincronização global para carregar o ID deste evento.");
+    toast("Aguarde a sincronização automática carregar o ID deste evento.");
     return;
   }
 
@@ -1200,7 +1435,7 @@ async function saveEventForEveryone(){
 async function deleteEventForEveryone(){
   const event=selectedEventFromEditor();
   if(!event||!event.id){
-    toast("Conecte a sincronização global primeiro.");
+    toast("Aguarde a sincronização automática terminar.");
     return;
   }
 
@@ -1487,7 +1722,7 @@ function shell(){
             </div>
             <div class="eyebrow">${S.data.meta.subtitle}</div>
             <h1>${S.data.meta.title}</h1>
-            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V17 RECONEXÃO</div>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V18 SEM CHAVE</div>
           </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -1945,23 +2180,39 @@ function settings(){
       <div class="setting setting-api">
         <div class="api-heading">
           <div>
-            <b>🌐 Sincronização em todos os dispositivos</b>
-            <div class="label">A chave fica salva somente neste navegador e nunca é enviada ao GitHub.</div>
+            <b>🌐 Sincronização automática em todos os dispositivos</b>
+            <div class="label">Não é necessário inserir chave. O site conecta diretamente à planilha central.</div>
           </div>
           <div class="api-status">${apiStatusLabel()}</div>
         </div>
-        <div class="api-connect-grid">
-          <label>
-            <span>Chave secreta do Apps Script</span>
-            <input id="apiSecretInput" class="ctrl" type="password"
-              placeholder="${getApiSecret()?"Chave já salva — não precisa digitar de novo":"Cole sua chave secreta"}"
-              autocomplete="off">
-          </label>
-          <button id="connectApi" class="sheet-btn primary" type="button">${getApiSecret()?"Reconectar agora":"Conectar e sincronizar"}</button>
-          <button id="forgetApi" class="sheet-btn" type="button">Esquecer chave</button>
+        <div class="actions">
+          <button id="syncGlobalNow" class="sheet-btn primary" type="button">Sincronizar agora</button>
         </div>
-        <div class="sheet-note">A chave permanece salva neste navegador. Depois de atualizar a página, o site tenta se reconectar automaticamente até três vezes.</div>
+        <div class="sheet-note danger-note"><b>Atenção:</b> sem chave, qualquer pessoa que obtenha o endereço do calendário ou da API poderá alterar os dados.</div>
       </div>
+
+      <div class="setting setting-app-icon">
+        <div class="app-icon-editor">
+          <div class="app-icon-preview-wrap">
+            <img id="appIconPreview" data-app-icon-preview src="${S.appIcon.url||DEFAULT_APP_ICON}" alt="Prévia do ícone">
+          </div>
+          <div class="app-icon-copy">
+            <b>🖼️ Ícone do aplicativo</b>
+            <div class="label">Escolha uma imagem. O site ajusta para 512 × 512 e sincroniza o ícone entre os aparelhos.</div>
+            <label class="icon-file-label">
+              <span>Escolher PNG, JPG, WEBP ou SVG</span>
+              <input id="appIconFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+            </label>
+            <div id="appIconFileName" class="sheet-note">${S.appIcon.custom?"Ícone personalizado ativo.":"Usando o icon.svg padrão do GitHub."}</div>
+            <div class="actions">
+              <button id="saveAppIconGlobal" class="sheet-btn primary" type="button">Salvar ícone para todos</button>
+              <button id="resetAppIconGlobal" class="sheet-btn" type="button">Restaurar ícone padrão</button>
+            </div>
+          </div>
+        </div>
+        <div class="sheet-note">O favicon muda ao sincronizar. No iPhone/iPad, um atalho já instalado pode manter o ícone antigo; nesse caso, remova-o da Tela de Início e adicione novamente pelo Safari.</div>
+      </div>
+
       <div class="setting setting-disciplines">
         <b>🎨 Cores e emojis das disciplinas — PERSONALIZAÇÃO ATIVA</b>
         <div class="label">Escolha uma cor e um emoji para cada matéria. A mudança aparece em todo o site imediatamente.</div>
@@ -2027,7 +2278,7 @@ function settings(){
           <button id="addEventGlobal" class="sheet-btn primary" type="button">Adicionar para todos os dispositivos</button>
         </div>
       </div>
-      <div class="setting"><b>Google Planilhas</b><div class="label">Sem a chave, o site funciona em modo de leitura. Com a chave conectada, lê e grava diretamente na planilha central.</div></div>
+      <div class="setting"><b>Google Planilhas</b><div class="label">O site lê e grava diretamente na planilha central, sem solicitar chave nos aparelhos.</div></div>
       <div class="setting"><b>Funcionamento offline</b><div class="label">Sem internet, o site mantém a última cópia local disponível.</div></div>
       <div class="setting"><label><span><b>Limpar favoritos e marcações</b><div class="label">Remove apenas dados salvos neste navegador.</div></span><button id="reset" class="ctrl btn">Limpar</button></label></div>
     </div>
@@ -2061,8 +2312,10 @@ function bind(){
   $("#theme").onclick=toggleTheme;
   if($("#theme2"))$("#theme2").onclick=toggleTheme;
   if($("#syncNowSettings"))$("#syncNowSettings").onclick=()=>refreshCurrentSource(false);
-  if($("#connectApi"))$("#connectApi").onclick=connectGlobalApi;
-  if($("#forgetApi"))$("#forgetApi").onclick=forgetGlobalApi;
+  if($("#syncGlobalNow"))$("#syncGlobalNow").onclick=()=>bootstrapGlobal(false);
+  if($("#appIconFile"))$("#appIconFile").onchange=previewSelectedAppIcon;
+  if($("#saveAppIconGlobal"))$("#saveAppIconGlobal").onclick=uploadAppIconForEveryone;
+  if($("#resetAppIconGlobal"))$("#resetAppIconGlobal").onclick=resetAppIconForEveryone;
   $$(".disc-color-input").forEach(input=>input.oninput=()=>{
     const code=input.dataset.code;
     const item=S.data.disciplines[code];
@@ -2236,7 +2489,7 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=17",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=18",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     applySavedDisciplineStyles();
@@ -2247,8 +2500,9 @@ document.addEventListener("DOMContentLoaded",async()=>{
     if(localStorage.getItem("theme")==="dark")document.body.classList.add("dark");
     render();
 
+    applyAppIcon({});
     await loadRemoteEvents(true);
-    if(getApiSecret())await bootstrapGlobal(true);
+    await bootstrapGlobal(true);
 
     setInterval(renderCountdown,60000);
     const refreshMinutes=Number(S.data.meta.autoRefreshMinutes)||5;
