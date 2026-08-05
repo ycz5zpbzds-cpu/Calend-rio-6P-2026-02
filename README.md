@@ -1,7 +1,8 @@
-# Calendário Premium — Turma A — 2026/2
+# Calendário Premium Máximo — Turma A — 2026/2
 
-## Publicação no GitHub Pages
-Envie todos estes arquivos para a raiz do repositório:
+## Arquivos para enviar ao GitHub
+Envie todos para a raiz do repositório:
+
 - index.html
 - styles.css
 - app.js
@@ -10,19 +11,23 @@ Envie todos estes arquivos para a raiz do repositório:
 - sw.js
 - icon.svg
 
-Depois:
-Settings → Pages → Deploy from a branch → main → /(root)
-
 ## Recursos
 - Dashboard e contagem regressiva
-- Progresso do semestre
-- Calendário mensal
+- Próximas avaliações
+- Semanas mais pesadas
+- Calendário mensal clicável
+- Painel lateral por dia
+- Visualização semanal
 - Agenda cronológica
-- Páginas por disciplina
+- Disciplinas
 - Favoritos
+- Marcar eventos como concluídos
 - Busca e filtros
 - Modo escuro
-- Exportação ICS completa e por matéria
+- Exportação ICS completa ou por matéria
 - Alertas de 5 dias e 1 dia
-- Instalação como app no iPhone
-- Funcionamento offline após o primeiro acesso
+- PWA instalável no iPhone
+- Funcionamento offline após primeiro acesso
+
+## Publicação
+Settings → Pages → Deploy from a branch → main → /(root)

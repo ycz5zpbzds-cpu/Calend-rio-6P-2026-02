@@ -1,37 +1,51 @@
 {
+  "meta": {
+    "title": "Calendário Premium — Turma A",
+    "subtitle": "Medicina UFMG · 6º período · 2026/2",
+    "semesterStart": "2026-08-03",
+    "semesterEnd": "2026-12-04",
+    "version": "4.0 Premium Máximo — atualização forçada"
+  },
   "disciplines": {
     "AP": {
       "name": "Anatomia Patológica",
+      "short": "Anatomia",
       "color": "#7C3AED",
       "icon": "🧬"
     },
     "PED": {
       "name": "Pediatria III",
+      "short": "Pediatria",
       "color": "#059669",
       "icon": "🧒"
     },
     "CLM": {
       "name": "Clínica Médica III",
+      "short": "Clínica",
       "color": "#EA580C",
       "icon": "🩺"
     },
     "CIR": {
       "name": "Cirurgia II",
+      "short": "Cirurgia",
       "color": "#DC2626",
-      "icon": "🔪"
+      "icon": "🩹"
     },
     "PC2": {
       "name": "Patologia Clínica 2",
+      "short": "Pat. Clínica",
       "color": "#2563EB",
       "icon": "🧪"
     },
     "GOB": {
       "name": "Ginecologia Básica",
+      "short": "Ginecologia",
       "color": "#DB2777",
       "icon": "🌸"
     },
     "GERAL": {
       "name": "Semana de provas (geral)",
+      "short": "Semana de provas",
       "color": "#94A3B8",
       "icon": "📅"
     }
