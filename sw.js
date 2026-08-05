@@ -1,5 +1,5 @@
 
-const CACHE="medicina-ufmg-v6-mobile";
+const CACHE="medicina-ufmg-v7-planilha";
 const FILES=["./","./index.html","./styles.css","./app.js","./eventos.json","./manifest.webmanifest","./icon.svg"];
 
 self.addEventListener("install",event=>{
@@ -19,7 +19,15 @@ self.addEventListener("fetch",event=>{
   const request=event.request;
   if(request.method!=="GET")return;
   const url=new URL(request.url);
-  const networkFirst=request.mode==="navigate" || ["eventos.json","app.js","styles.css"].some(name=>url.pathname.endsWith(name));
+
+  // A planilha é sempre consultada diretamente. O app já possui fallback local.
+  if(url.origin!==self.location.origin){
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  const networkFirst=request.mode==="navigate" ||
+    ["eventos.json","app.js","styles.css"].some(name=>url.pathname.endsWith(name));
 
   if(networkFirst){
     event.respondWith(

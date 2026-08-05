@@ -7,7 +7,8 @@ const S={
   view:"dashboard",
   favorites:new Set(JSON.parse(localStorage.getItem("fav")||"[]")),
   completed:new Set(JSON.parse(localStorage.getItem("done")||"[]")),
-  weekOffset:0
+  weekOffset:0,
+  sync:{status:"loading",message:"Carregando planilha…",updatedAt:null,remoteCount:0}
 };
 
 const $=q=>document.querySelector(q);
@@ -83,6 +84,121 @@ function setView(view){
   $$(".view").forEach(v=>v.classList.toggle("active",v.id===view));
 }
 
+
+function parseCsv(text){
+  const rows=[];let row=[],cell="",quoted=false;
+  text=(text||"").replace(/^\uFEFF/,"");
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(quoted){
+      if(ch==='"'&&text[i+1]==='"'){cell+='"';i++}
+      else if(ch==='"'){quoted=false}
+      else cell+=ch;
+    }else{
+      if(ch==='"')quoted=true;
+      else if(ch===","){row.push(cell);cell=""}
+      else if(ch==="\n"){row.push(cell);rows.push(row);row=[];cell=""}
+      else if(ch!=="\r")cell+=ch;
+    }
+  }
+  if(cell.length||row.length){row.push(cell);rows.push(row)}
+  return rows;
+}
+function normalizeHeader(v){
+  return (v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase();
+}
+function toIsoDate(value){
+  const s=(value||"").trim();
+  if(!s)return "";
+  let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m)return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+  m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(m)return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
+  return "";
+}
+function eventsFromCsv(text){
+  const rows=parseCsv(text);
+  if(rows.length<2)throw new Error("A planilha está vazia.");
+  const headers=rows[0].map(normalizeHeader);
+  const indexOf=(...names)=>{
+    for(const name of names){
+      const idx=headers.indexOf(normalizeHeader(name));
+      if(idx>=0)return idx;
+    }
+    return -1;
+  };
+  const ix={
+    date:indexOf("Data"),
+    end:indexOf("Data final","Data fim"),
+    disc:indexOf("Disciplina","Matéria","Materia"),
+    label:indexOf("Evento","Atividade"),
+    time:indexOf("Horário","Horario")
+  };
+  if(ix.date<0||ix.disc<0||ix.label<0){
+    throw new Error("As colunas Data, Disciplina e Evento são obrigatórias.");
+  }
+  const result=[];
+  for(const row of rows.slice(1)){
+    const date=toIsoDate(row[ix.date]);
+    const code=(row[ix.disc]||"").trim().toUpperCase();
+    const label=(row[ix.label]||"").trim();
+    if(!date&&!code&&!label)continue;
+    if(!date||!label||!S.data.disciplines[code])continue;
+    const event={date,disc:code,label};
+    const finish=ix.end>=0?toIsoDate(row[ix.end]):"";
+    if(finish&&dateKey(finish)>=dateKey(date))event.end=finish;
+    const time=ix.time>=0?(row[ix.time]||"").trim():"";
+    if(time)event.time=time;
+    event.type=classify(event);
+    result.push(event);
+  }
+  if(!result.length)throw new Error("Nenhum evento válido foi encontrado.");
+  return result.sort((a,b)=>dateKey(a.date)-dateKey(b.date)||a.disc.localeCompare(b.disc));
+}
+function syncTimeLabel(date){
+  if(!date)return "";
+  return date.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+}
+function renderSyncStatus(){
+  const box=$("#syncStatus");
+  if(!box)return;
+  box.className=`sync-status ${S.sync.status}`;
+  const label=S.sync.status==="ok"
+    ? `<strong>Planilha conectada</strong> · ${S.sync.remoteCount} eventos · atualizado às ${syncTimeLabel(S.sync.updatedAt)}`
+    : S.sync.status==="loading"
+      ? `<strong>Atualizando planilha…</strong>`
+      : `<strong>Usando cópia local</strong> · ${S.sync.message}`;
+  box.innerHTML=`<div class="sync-left"><span class="sync-dot"></span><span class="sync-text">${label}</span></div>
+    <button id="syncNow" class="sync-btn" ${S.sync.status==="loading"?"disabled":""}>Atualizar agora</button>`;
+  const button=$("#syncNow");
+  if(button)button.onclick=()=>loadRemoteEvents(false);
+}
+async function loadRemoteEvents(silent=false){
+  const base=S.data?.meta?.sourceCsv;
+  if(!base)return false;
+  S.sync.status="loading";
+  S.sync.message="Carregando planilha…";
+  renderSyncStatus();
+  try{
+    const url=base+(base.includes("?")?"&":"?")+"_="+Date.now();
+    const response=await fetch(url,{cache:"no-store",credentials:"omit"});
+    if(!response.ok)throw new Error(`erro ${response.status}`);
+    const text=await response.text();
+    const remote=eventsFromCsv(text);
+    S.data.events=remote;
+    S.sync={status:"ok",message:"Planilha conectada",updatedAt:new Date(),remoteCount:remote.length};
+    render();
+    if(!silent)toast("Planilha atualizada");
+    return true;
+  }catch(error){
+    S.sync.status="error";
+    S.sync.message=navigator.onLine?"não foi possível acessar a planilha":"sem internet";
+    renderSyncStatus();
+    if(!silent)toast("Não foi possível atualizar. Mantive a cópia local.");
+    return false;
+  }
+}
+
 function shell(){
   return `<div class="shell">
     <div class="sticky">
@@ -90,10 +206,11 @@ function shell(){
         <div>
           <div class="eyebrow">${S.data.meta.subtitle}</div>
           <h1>${S.data.meta.title}</h1>
-          <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V6 Mobile</div>
+          <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V7 Planilha</div>
         </div>
         <div id="countdown" class="countdown"></div>
       </section>
+      <div id="syncStatus" class="sync-status loading"></div>
       <div class="controls">
         <input id="search" class="ctrl search" placeholder="Buscar prova, GD, AT, tema ou disciplina…">
         <select id="type" class="ctrl">
@@ -405,7 +522,8 @@ function settings(){
       <div class="setting"><b>Lembretes ICS</b><div class="label">5 dias antes e 1 dia antes.</div></div>
       <div class="setting"><b>Cores no iPhone</b><div class="label">Exporte por matéria e importe cada arquivo em um calendário separado.</div></div>
       <div class="setting"><b>Instalar no iPhone</b><div class="label">Safari → Compartilhar → Adicionar à Tela de Início.</div></div>
-      <div class="setting"><b>Funcionamento offline</b><div class="label">O site tenta buscar a versão nova primeiro e usa o cache apenas se estiver sem internet.</div></div>
+      <div class="setting"><b>Google Planilhas</b><div class="label">Os eventos são lidos da planilha publicada sempre que o site abre e a cada 5 minutos.</div></div>
+      <div class="setting"><b>Funcionamento offline</b><div class="label">Sem internet, o site mantém a última cópia local disponível.</div></div>
       <div class="setting"><label><span><b>Limpar favoritos e marcações</b><div class="label">Remove apenas dados salvos neste navegador.</div></span><button id="reset" class="ctrl btn">Limpar</button></label></div>
     </div>
   </div>`;
@@ -413,6 +531,7 @@ function settings(){
 
 function render(){
   renderCountdown();
+  renderSyncStatus();
   dashboard();
   calendar();
   weekView();
@@ -543,18 +662,29 @@ function download(n,t){
   a.href=u;a.download=n;a.click();URL.revokeObjectURL(u);
 }
 
-document.addEventListener("DOMContentLoaded",()=>{
-  fetch("./eventos.json",{cache:"no-store"})
-    .then(r=>r.json())
-    .then(x=>{
-      S.data=x;
-      S.data.events.forEach(e=>e.type=classify(e));
-      Object.keys(x.disciplines).forEach(k=>S.active.add(k));
-      document.body.innerHTML=shell()+`<div id="toast" class="toast"></div>`;
-      if(localStorage.getItem("theme")==="dark")document.body.classList.add("dark");
-      render();
-      setInterval(renderCountdown,60000);
-      if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
-    })
-    .catch(()=>document.body.innerHTML="<div class='boot'>Não foi possível carregar eventos.json.</div>");
+document.addEventListener("DOMContentLoaded",async()=>{
+  try{
+    const response=await fetch("./eventos.json",{cache:"no-store"});
+    const x=await response.json();
+    S.data=x;
+    S.data.events.forEach(e=>e.type=classify(e));
+    Object.keys(x.disciplines).forEach(k=>S.active.add(k));
+    document.body.innerHTML=shell()+`<div id="toast" class="toast"></div>`;
+    if(localStorage.getItem("theme")==="dark")document.body.classList.add("dark");
+    render();
+
+    await loadRemoteEvents(true);
+
+    setInterval(renderCountdown,60000);
+    const refreshMinutes=Number(S.data.meta.autoRefreshMinutes)||5;
+    setInterval(()=>loadRemoteEvents(true),refreshMinutes*60000);
+    document.addEventListener("visibilitychange",()=>{
+      if(document.visibilityState==="visible")loadRemoteEvents(true);
+    });
+    window.addEventListener("online",()=>loadRemoteEvents(true));
+
+    if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  }catch(error){
+    document.body.innerHTML="<div class='boot'>Não foi possível carregar o calendário.</div>";
+  }
 });
