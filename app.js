@@ -203,10 +203,13 @@ function shell(){
   return `<div class="shell">
     <div class="sticky">
       <section class="hero">
-        <div>
-          <div class="eyebrow">${S.data.meta.subtitle}</div>
-          <h1>${S.data.meta.title}</h1>
-          <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V8 Planilha</div>
+        <div class="hero-main">
+          <div class="hero-logo"><img src="./logo_medicina.svg" alt="Logo Medicina UFMG"></div>
+          <div class="hero-copy">
+            <div class="eyebrow">${S.data.meta.subtitle}</div>
+            <h1>${S.data.meta.title}</h1>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V9 Planilha + logo</div>
+          </div>
         </div>
         <div id="countdown" class="countdown"></div>
       </section>
@@ -522,6 +525,15 @@ function settings(){
       <div class="setting"><b>Lembretes ICS</b><div class="label">5 dias antes e 1 dia antes.</div></div>
       <div class="setting"><b>Cores no iPhone</b><div class="label">Exporte por matéria e importe cada arquivo em um calendário separado.</div></div>
       <div class="setting"><b>Instalar no iPhone</b><div class="label">Safari → Compartilhar → Adicionar à Tela de Início.</div></div>
+      <div class="setting">
+        <b>Planilha dos eventos</b>
+        <div class="label">Atalho direto para a planilha publicada usada como fonte do calendário.</div>
+        <div class="actions">
+          <button id="sheetLink" class="sheet-btn primary">Abrir planilha</button>
+          <button id="syncNowSettings" class="sheet-btn">Atualizar agora</button>
+        </div>
+        <div class="sheet-note">Se quiser que este botão abra a versão editável do Google Planilhas, depois é só trocar pelo seu link editável.</div>
+      </div>
       <div class="setting"><b>Google Planilhas</b><div class="label">Os eventos são lidos da planilha publicada sempre que o site abre e a cada 5 minutos.</div></div>
       <div class="setting"><b>Funcionamento offline</b><div class="label">Sem internet, o site mantém a última cópia local disponível.</div></div>
       <div class="setting"><label><span><b>Limpar favoritos e marcações</b><div class="label">Remove apenas dados salvos neste navegador.</div></span><button id="reset" class="ctrl btn">Limpar</button></label></div>
@@ -550,6 +562,8 @@ function bind(){
   $("#type").onchange=e=>{S.type=e.target.value;render()};
   $("#theme").onclick=toggleTheme;
   if($("#theme2"))$("#theme2").onclick=toggleTheme;
+  if($("#sheetLink"))$("#sheetLink").onclick=()=>window.open(sheetPublicUrl(),"_blank","noopener");
+  if($("#syncNowSettings"))$("#syncNowSettings").onclick=()=>loadRemoteEvents(false);
 
   $$(".nav button").forEach(b=>b.onclick=()=>{S.view=b.dataset.view;setView(S.view)});
   $$("[data-disc]").forEach(b=>b.onclick=()=>{
@@ -664,7 +678,7 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=8",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=9",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     S.data.events.forEach(e=>e.type=classify(e));
@@ -683,7 +697,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
     });
     window.addEventListener("online",()=>loadRemoteEvents(true));
 
-    if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js?v=8").catch(()=>{});
+    if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js?v=9").catch(()=>{});
   }catch(error){
     document.body.innerHTML="<div class='boot'>Não foi possível carregar o calendário.</div>";
   }

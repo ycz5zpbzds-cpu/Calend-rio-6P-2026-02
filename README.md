@@ -1,13 +1,13 @@
-# V8 — correção de cache
+# V9 — logo + link da planilha
 
-Esta versão força o navegador a carregar os arquivos novos usando:
+Mudanças:
+- adiciona um botão **Abrir planilha** em Configurações;
+- adiciona um botão **Atualizar agora** em Configurações;
+- adiciona uma logo estilizada no painel principal;
+- mantém a planilha conectada;
+- continua usando cache forçado para evitar carregar arquivos antigos.
 
-- app.js?v=8
-- styles.css?v=8
-- eventos.json?v=8
-- sw.js?v=8
-
-## Substitua no GitHub
+## Arquivos para substituir no GitHub
 - index.html
 - styles.css
 - app.js
@@ -15,5 +15,4 @@ Esta versão força o navegador a carregar os arquivos novos usando:
 - manifest.webmanifest
 - sw.js
 - icon.svg
-
-Depois do commit, abra o site normalmente. A faixa “Planilha conectada” deve aparecer abaixo do cabeçalho.
+- logo_medicina.svg
