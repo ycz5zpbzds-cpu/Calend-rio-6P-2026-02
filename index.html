@@ -10,9 +10,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=20">
-  <link id="appFavicon" rel="icon" href="./icon.svg?v=20" type="image/svg+xml">
-  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=20">
+  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=21">
+  <link id="appFavicon" rel="icon" href="./icon.svg?v=21" type="image/svg+xml">
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=21">
   <title>Calendário Medicina UFMG — 6º Período — 2026/2</title>
   <style>
 :root{
@@ -877,6 +877,18 @@ body.dark .sheet-btn.danger{
   .app-icon-preview-wrap{width:128px;margin:auto}
 }
 
+
+/* ===== V21: cronômetro das últimas 24 horas ===== */
+.cd-num.timer{
+  font-size:39px;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-1px;
+  white-space:nowrap;
+}
+@media(max-width:700px){
+  .cd-num.timer{font-size:29px;letter-spacing:-.7px}
+}
+
 </style>
 </head>
 <body>
@@ -909,14 +921,14 @@ const S={
   sync:{status:"loading",message:"Carregando planilha…",updatedAt:null,remoteCount:0},
   api:{status:"loading",message:"Conectando automaticamente…",updatedAt:null,version:"",configRevision:""},
   defaultDisciplineStyles:{},
-  appIcon:{url:"./icon.svg?v=20",updatedAt:"",custom:false}
+  appIcon:{url:"./icon.svg?v=21",updatedAt:"",custom:false}
 };
 
 const DISC_STYLE_KEY="medicinaUFMG_discStyles_v1";
 
 const CHART_STYLE_KEY="medicinaUFMG_chartStyles_v1";
 const EVENT_EDIT_KEY="medicinaUFMG_eventEdits_v1";
-const DEFAULT_APP_ICON="./icon.svg?v=20";
+const DEFAULT_APP_ICON="./icon.svg?v=21";
 let dynamicManifestUrl="";
 let pendingAppIconDataUrl="";
 let styleSaveTimer=null;
@@ -1111,7 +1123,7 @@ function updateDynamicManifest(iconUrl){
   const manifest={
     name:"Calendário Medicina UFMG — 6º Período — 2026/2",
     short_name:"Medicina UFMG",
-    start_url:"./?build=20",
+    start_url:"./?build=21",
     scope:"./",
     display:"standalone",
     background_color:"#F4F2EC",
@@ -1156,7 +1168,7 @@ function applyAppIcon(siteConfig={}){
       URL.revokeObjectURL(dynamicManifestUrl);
       dynamicManifestUrl="";
     }
-    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=20");
+    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=21");
   }
 
   document.querySelectorAll("[data-app-icon-preview]").forEach(image=>{
@@ -1665,6 +1677,7 @@ const TYPE_META={
 function d(s){return new Date(s+"T12:00:00")}
 function fmt(s){const x=d(s);return `${String(x.getDate()).padStart(2,"0")}/${String(x.getMonth()+1).padStart(2,"0")}`}
 function dateKey(s){const [y,m,day]=s.split("-").map(Number);return Date.UTC(y,m-1,day)}
+
 function saoPauloTodayParts(){
   const parts=new Intl.DateTimeFormat("en-US",{
     timeZone:"America/Sao_Paulo",
@@ -1672,17 +1685,23 @@ function saoPauloTodayParts(){
     month:"2-digit",
     day:"2-digit"
   }).formatToParts(new Date());
+
   const values={};
-  parts.forEach(part=>{if(part.type!=="literal")values[part.type]=Number(part.value)});
+  parts.forEach(part=>{
+    if(part.type!=="literal")values[part.type]=Number(part.value);
+  });
   return values;
 }
+
 function todayKey(){
   const p=saoPauloTodayParts();
   return Date.UTC(p.year,p.month-1,p.day);
 }
+
 function calendarDaysUntil(s){
   return (dateKey(s)-todayKey())/DAY_MS;
 }
+
 function endKey(e){return dateKey(e.end||e.date)}
 function isPast(e){return endKey(e)<todayKey()}
 function isCurrent(e){return dateKey(e.date)<=todayKey()&&endKey(e)>=todayKey()}
@@ -1693,6 +1712,7 @@ function disc(k){return S.data.disciplines[k]}
 function isUnconfirmed(e){
   return /a confirmar|base 2025|data provável|não publicado|checar c\/ coordenação/i.test(e.label+" "+(e.time||""));
 }
+
 function eventKind(e){
   const t=(e.label+" "+(e.time||"")).toLowerCase();
   if(/ambulatório|ambulatorial|triagem|consulta/.test(t))return"ambulatory";
@@ -1700,6 +1720,7 @@ function eventKind(e){
   if(/prova|av1|av2|av3|av4|av6|modular|exame especial|atividade integradora|avaliativo|avaliação parcial|avaliação final|salto triplo|semana de provas/.test(t))return"assessment";
   return"class";
 }
+
 function classify(e){return isUnconfirmed(e)?"pending":eventKind(e)}
 
 function visible(e){
@@ -1708,34 +1729,212 @@ function visible(e){
   const h=(disc(e.disc).name+" "+e.label+" "+(e.time||"")).toLowerCase();
   return !S.query||h.includes(S.query);
 }
+
 function days(e){
-  const a=[];let key=dateKey(e.date),last=endKey(e);
-  while(key<=last){a.push(new Date(key).toISOString().slice(0,10));key+=DAY_MS}
+  const a=[];
+  let key=dateKey(e.date),last=endKey(e);
+  while(key<=last){
+    a.push(new Date(key).toISOString().slice(0,10));
+    key+=DAY_MS;
+  }
   return a;
 }
+
 function save(){
   localStorage.setItem("fav",JSON.stringify([...S.favorites]));
   localStorage.setItem("done",JSON.stringify([...S.completed]));
 }
+
 function toast(t){
-  const x=$("#toast");if(!x)return;
-  x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1600);
+  const x=$("#toast");
+  if(!x)return;
+  x.textContent=t;
+  x.classList.add("show");
+  setTimeout(()=>x.classList.remove("show"),1600);
 }
+
+/*
+  Extrai horários como:
+  20h
+  13h15
+  14h–15h30
+  10:30–11:30
+*/
+function parseEventClockTimes(value){
+  const text=String(value||"");
+  const regex=/(?:^|[^\d])([01]?\d|2[0-3])\s*(?:h|:)\s*(\d{2})?/gi;
+  const result=[];
+  let match;
+
+  while((match=regex.exec(text))){
+    result.push({
+      hour:Number(match[1]),
+      minute:Number(match[2]||0)
+    });
+  }
+
+  return result;
+}
+
+function timeZoneOffsetMs(date,timeZone){
+  const parts=new Intl.DateTimeFormat("en-US",{
+    timeZone,
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit",
+    second:"2-digit",
+    hourCycle:"h23"
+  }).formatToParts(date);
+
+  const values={};
+  parts.forEach(part=>{
+    if(part.type!=="literal")values[part.type]=Number(part.value);
+  });
+
+  const representedAsUtc=Date.UTC(
+    values.year,
+    values.month-1,
+    values.day,
+    values.hour,
+    values.minute,
+    values.second
+  );
+
+  return representedAsUtc-date.getTime();
+}
+
+function saoPauloDateTimeMs(dateString,hour,minute){
+  const [year,month,day]=dateString.split("-").map(Number);
+  const desiredUtc=Date.UTC(year,month-1,day,hour,minute,0);
+  let guess=desiredUtc;
+
+  for(let i=0;i<2;i++){
+    const offset=timeZoneOffsetMs(new Date(guess),"America/Sao_Paulo");
+    guess=desiredUtc-offset;
+  }
+
+  return guess;
+}
+
+function eventStartMs(e){
+  const clocks=parseEventClockTimes(e.time);
+  if(!clocks.length)return null;
+  return saoPauloDateTimeMs(e.date,clocks[0].hour,clocks[0].minute);
+}
+
+function eventExplicitEndMs(e){
+  const clocks=parseEventClockTimes(e.time);
+  if(clocks.length<2)return null;
+
+  const endDate=e.end||e.date;
+  let value=saoPauloDateTimeMs(
+    endDate,
+    clocks[1].hour,
+    clocks[1].minute
+  );
+
+  const start=eventStartMs(e);
+  if(value<=start&&!e.end)value+=DAY_MS;
+  return value;
+}
+
+function countdownEventIsPast(e){
+  if(isPast(e))return true;
+
+  const explicitEnd=eventExplicitEndMs(e);
+  if(explicitEnd!==null&&Date.now()>explicitEnd)return true;
+
+  return false;
+}
+
 function futureEvents(list=S.data.events){
-  return list.filter(e=>!isPast(e)).sort((a,b)=>dateKey(a.date)-dateKey(b.date));
+  return list
+    .filter(e=>!countdownEventIsPast(e))
+    .sort((a,b)=>{
+      const aStart=eventStartMs(a);
+      const bStart=eventStartMs(b);
+      const aValue=aStart!==null?aStart:dateKey(a.date);
+      const bValue=bStart!==null?bStart:dateKey(b.date);
+      return aValue-bValue;
+    });
 }
+
 function nextEvent(list=S.data.events){
   return futureEvents(list)[0]||null;
 }
-function countdownText(e){
-  if(!e)return {number:"—",unit:"sem eventos"};
-  if(isCurrent(e))return {number:"HOJE",unit:e.end&&e.end!==e.date?"em andamento":"é hoje"};
+
+function formatRemainingTime(milliseconds,compact=false){
+  const totalSeconds=Math.max(0,Math.floor(milliseconds/1000));
+  const hours=Math.floor(totalSeconds/3600);
+  const minutes=Math.floor((totalSeconds%3600)/60);
+  const seconds=totalSeconds%60;
+
+  if(compact){
+    return `${hours}h ${String(minutes).padStart(2,"0")}min`;
+  }
+
+  return [
+    String(hours).padStart(2,"0"),
+    String(minutes).padStart(2,"0"),
+    String(seconds).padStart(2,"0")
+  ].join(":");
+}
+
+function countdownText(e,compact=false){
+  if(!e)return {number:"—",unit:"sem eventos",timer:false};
+
+  const start=eventStartMs(e);
+
+  if(start!==null){
+    const remaining=start-Date.now();
+
+    if(remaining>0&&remaining<=DAY_MS){
+      return {
+        number:formatRemainingTime(remaining,compact),
+        unit:"para começar",
+        timer:true
+      };
+    }
+
+    if(remaining<=0){
+      const explicitEnd=eventExplicitEndMs(e);
+
+      if(
+        (explicitEnd!==null&&Date.now()<=explicitEnd)||
+        (explicitEnd===null&&Date.now()-start<=60*60*1000)
+      ){
+        return {
+          number:"AGORA",
+          unit:"em andamento",
+          timer:false
+        };
+      }
+
+      if(isCurrent(e)){
+        return {
+          number:"HOJE",
+          unit:"evento iniciado",
+          timer:false
+        };
+      }
+    }
+  }
+
+  if(isCurrent(e)){
+    return {
+      number:"HOJE",
+      unit:e.end&&e.end!==e.date?"em andamento":"é hoje",
+      timer:false
+    };
+  }
 
   const n=Math.max(0,calendarDaysUntil(e.date));
 
-  if(n===0)return {number:"HOJE",unit:"é hoje"};
-  if(n===1)return {number:"1",unit:"dia faltando"};
-  return {number:String(n),unit:"dias faltando"};
+  if(n===0)return {number:"HOJE",unit:"é hoje",timer:false};
+  if(n===1)return {number:"1",unit:"dia faltando",timer:false};
+  return {number:String(n),unit:"dias faltando",timer:false};
 }
 function setView(view){
   S.view=view;
@@ -1872,7 +2071,7 @@ function shell(){
             </div>
             <div class="eyebrow">${S.data.meta.subtitle}</div>
             <h1>${S.data.meta.title}</h1>
-            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V20 CORES + CONTAGEM</div>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V21 CRONÔMETRO 24H</div>
           </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -1924,7 +2123,7 @@ function renderCountdown(){
     return;
   }
   box.innerHTML=`
-    <div><div class="cd-num">${c.number}</div><div class="cd-unit">${c.unit}</div></div>
+    <div><div class="cd-num ${c.timer?"timer":""}">${c.number}</div><div class="cd-unit">${c.unit}</div></div>
     <div>
       <div class="cd-title">${disc(e.disc).icon||""} ${disc(e.disc).name} — ${e.label}</div>
       <div class="cd-meta">${fmt(e.date)}${e.time?" · "+e.time:""}${e.end?" · até "+fmt(e.end):""}</div>
@@ -2003,7 +2202,7 @@ function nextDisciplineCards(){
   const cards=Object.keys(S.data.disciplines).filter(k=>k!=="GERAL").map(k=>{
     const e=nextEvent(S.data.events.filter(x=>x.disc===k));
     if(!e)return "";
-    const c=countdownText(e);
+    const c=countdownText(e,true);
     return `<button class="next-disc-card" data-next-disc="${k}" style="--c:${disc(k).color}">
       <div class="next-disc-head">
         <div class="next-disc-name">${disc(k).icon||""} ${disc(k).name}</div>
@@ -2428,7 +2627,7 @@ function settings(){
           <button id="addEventGlobal" class="sheet-btn primary" type="button">Adicionar para todos os dispositivos</button>
         </div>
       </div>
-      <div class="setting"><b>⏳ Contagem de dias</b><div class="label">Usa sempre a data de São Paulo: dia 5 para atividade dia 6 = 1 dia; no próprio dia 6 = HOJE. Não usa horas nem cronômetro.</div></div>
+      <div class="setting"><b>⏳ Contagem e cronômetro</b><div class="label">Usa sempre o horário de São Paulo. Acima de 24 horas mostra dias; nas últimas 24 horas, quando existe horário exato, mostra um cronômetro com horas, minutos e segundos.</div></div>
       <div class="setting"><b>Google Planilhas</b><div class="label">O site lê e grava diretamente na planilha central, sem solicitar chave nos aparelhos.</div></div>
       <div class="setting"><b>Funcionamento offline</b><div class="label">Sem internet, o site mantém a última cópia local disponível.</div></div>
       <div class="setting"><label><span><b>Limpar favoritos e marcações</b><div class="label">Remove apenas dados salvos neste navegador.</div></span><button id="reset" class="ctrl btn">Limpar</button></label></div>
@@ -2649,7 +2848,7 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=20",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=21",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     S.defaultDisciplineStyles=Object.fromEntries(
@@ -2670,7 +2869,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
     await loadRemoteEvents(true);
     await bootstrapGlobal(true);
 
-    setInterval(renderCountdown,30000);
+    setInterval(renderCountdown,1000);
     const refreshSeconds=15;
     setInterval(()=>{
       if(!pendingGlobalStyleItems.size)refreshCurrentSource(true);

@@ -1,20 +1,16 @@
-# V20 — cores automáticas e contagem estável
+# V21 — cronômetro nas últimas 24 horas
 
-Correções:
-- a API informa a versão real; o site avisa quando a implantação está antiga;
-- cores e emojis são salvos automaticamente, sem depender do botão;
-- cada alteração salva somente a configuração modificada;
-- configuração global sempre prevalece sobre cores locais antigas;
-- outros aparelhos verificam mudanças a cada 15 segundos;
-- ao voltar para a aba ou reabrir o site, sincroniza imediatamente;
-- contagem usa exclusivamente a data de São Paulo;
-- dia 5 para evento dia 6 = 1 dia;
-- evento no próprio dia = HOJE;
-- não usa horário nem cronômetro.
+Comportamento:
+- acima de 24 horas: mostra dias faltando;
+- 24 horas ou menos, com horário exato: mostra HH:MM:SS;
+- ao alcançar o horário: mostra AGORA;
+- eventos sem horário exato continuam mostrando HOJE;
+- usa sempre o fuso America/Sao_Paulo;
+- reconhece formatos como 20h, 13h15, 14h–15h30 e 10:30–11:30.
+
+Esta versão altera somente o site. Não é necessário mexer no Apps Script.
 
 Publicação:
-1. Cole o Apps Script V20.
-2. Execute setupV20.
-3. Em Gerenciar implantações, selecione Nova versão e implante.
-4. Substitua no GitHub index.html, eventos.json, manifest.webmanifest e icon.svg.
-5. Abra com ?build=20.
+1. Substituir no GitHub: index.html, eventos.json, manifest.webmanifest e icon.svg.
+2. Abrir:
+https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/?build=21
