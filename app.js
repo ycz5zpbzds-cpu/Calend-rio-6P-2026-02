@@ -206,7 +206,7 @@ function shell(){
         <div>
           <div class="eyebrow">${S.data.meta.subtitle}</div>
           <h1>${S.data.meta.title}</h1>
-          <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V7 Planilha</div>
+          <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V8 Planilha</div>
         </div>
         <div id="countdown" class="countdown"></div>
       </section>
@@ -664,7 +664,7 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=8",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     S.data.events.forEach(e=>e.type=classify(e));
@@ -683,7 +683,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
     });
     window.addEventListener("online",()=>loadRemoteEvents(true));
 
-    if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
+    if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js?v=8").catch(()=>{});
   }catch(error){
     document.body.innerHTML="<div class='boot'>Não foi possível carregar o calendário.</div>";
   }

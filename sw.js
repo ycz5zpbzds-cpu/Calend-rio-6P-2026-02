@@ -1,6 +1,6 @@
 
-const CACHE="medicina-ufmg-v7-planilha";
-const FILES=["./","./index.html","./styles.css","./app.js","./eventos.json","./manifest.webmanifest","./icon.svg"];
+const CACHE="medicina-ufmg-v8-planilha";
+const FILES=["./","./index.html","./styles.css?v=8","./app.js?v=8","./eventos.json?v=8","./manifest.webmanifest?v=8","./icon.svg"];
 
 self.addEventListener("install",event=>{
   self.skipWaiting();

@@ -1,27 +1,13 @@
-# Calendário Medicina UFMG — V7 Planilha Conectada
+# V8 — correção de cache
 
-## Fonte dos eventos
-O site está conectado a esta planilha publicada:
+Esta versão força o navegador a carregar os arquivos novos usando:
 
-https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1mM31Eev9pdETLKewHKu1z5iUcw76H43yhxT9n5VF93uEm5VXkEAFQ0EGy35qYPOZGukUmxc5eP3M/pub?gid=2145739929&single=true&output=csv
+- app.js?v=8
+- styles.css?v=8
+- eventos.json?v=8
+- sw.js?v=8
 
-## Como atualizar daqui para frente
-1. Abra o Google Planilhas.
-2. Adicione uma linha ou altere uma data na aba Eventos.
-3. Recarregue o site ou clique em **Atualizar agora**.
-
-O site também verifica a planilha automaticamente a cada 5 minutos e quando volta a ficar visível.
-
-## Colunas obrigatórias
-- Data
-- Data final
-- Disciplina
-- Evento
-- Horário
-
-Não altere os nomes das colunas.
-
-## Arquivos para substituir no GitHub
+## Substitua no GitHub
 - index.html
 - styles.css
 - app.js
@@ -30,5 +16,4 @@ Não altere os nomes das colunas.
 - sw.js
 - icon.svg
 
-Depois dessa substituição, futuras mudanças de eventos serão feitas apenas na planilha.
-Os eventos já importados no Calendário do iPhone não serão alterados.
+Depois do commit, abra o site normalmente. A faixa “Planilha conectada” deve aparecer abaixo do cabeçalho.
