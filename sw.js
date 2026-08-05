@@ -1,5 +1,5 @@
 
-const CACHE="medicina-ufmg-v5";
+const CACHE="medicina-ufmg-v6-mobile";
 const FILES=["./","./index.html","./styles.css","./app.js","./eventos.json","./manifest.webmanifest","./icon.svg"];
 
 self.addEventListener("install",event=>{

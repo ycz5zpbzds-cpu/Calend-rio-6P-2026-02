@@ -128,3 +128,371 @@ h1{margin:10px 0 7px;font-size:35px;line-height:1.04;letter-spacing:-.025em}
   .donut{width:190px;height:190px}
   .week-board{grid-template-columns:repeat(7,165px)}
 }
+
+
+/* =========================================================
+   V6 MOBILE PREMIUM
+   O celular recebe uma interface própria, mais compacta,
+   com navegação inferior, cards legíveis e calendário maior.
+   ========================================================= */
+
+.mobile-only{display:none}
+.mobile-month-toggle{display:none}
+
+@media(max-width:700px){
+  html{scroll-padding-top:8px}
+  body{
+    background-size:22px 22px;
+    padding-bottom:88px;
+    -webkit-text-size-adjust:100%;
+  }
+  .shell{padding:7px}
+  .sticky{
+    position:static;
+    padding-bottom:2px;
+    background:transparent;
+    backdrop-filter:none;
+  }
+
+  /* Cabeçalho muito mais compacto */
+  .hero{
+    grid-template-columns:1fr;
+    gap:10px;
+    padding:15px 14px 14px 20px;
+    border-radius:16px;
+  }
+  .hero:before{width:6px}
+  .eyebrow{
+    font-size:9px;
+    letter-spacing:.11em;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  h1{
+    font-size:21px;
+    line-height:1.08;
+    margin:6px 0 2px;
+    letter-spacing:-.02em;
+  }
+  .hero .sub{
+    display:none;
+  }
+
+  /* Contagem regressiva horizontal e baixa */
+  .countdown{
+    min-height:70px;
+    padding:11px 12px;
+    border-radius:13px;
+    gap:12px;
+  }
+  .cd-num{
+    font-size:31px;
+    min-width:57px;
+    text-align:center;
+  }
+  .cd-unit{
+    font-size:8px;
+    letter-spacing:.09em;
+    text-align:center;
+  }
+  .cd-title{
+    font-size:13px;
+    line-height:1.2;
+  }
+  .cd-meta{
+    font-size:11px;
+    margin-top:3px;
+  }
+
+  /* Busca sempre visível; filtros compactos */
+  .controls{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+    margin:8px 0 4px;
+  }
+  .ctrl{
+    min-height:43px;
+    padding:9px 10px;
+    border-radius:11px;
+    font-size:14px;
+  }
+  .search{
+    grid-column:1/-1;
+    width:100%;
+    font-size:16px; /* evita zoom automático do Safari */
+  }
+  #type{grid-column:1/2}
+  #theme{grid-column:2/3}
+  #icsAll,#icsDisc{
+    font-size:12px;
+    min-height:39px;
+  }
+
+  /* Navegação fixa inferior, estilo aplicativo */
+  .nav{
+    position:fixed;
+    left:8px;
+    right:8px;
+    bottom:8px;
+    z-index:300;
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:2px;
+    padding:6px;
+    border:1px solid var(--line);
+    border-radius:18px;
+    background:color-mix(in srgb,var(--panel) 94%,transparent);
+    box-shadow:0 12px 35px rgba(15,23,42,.20);
+    backdrop-filter:blur(18px);
+    overflow:visible;
+  }
+  .nav button{
+    min-width:0;
+    min-height:53px;
+    padding:5px 2px;
+    border:0;
+    border-radius:12px;
+    background:transparent;
+    font-size:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:2px;
+  }
+  .nav button::before{
+    font-size:20px;
+    line-height:1;
+  }
+  .nav button::after{
+    font-size:8px;
+    font-weight:800;
+    line-height:1;
+  }
+  .nav button[data-view="dashboard"]::before{content:"⌂"}
+  .nav button[data-view="dashboard"]::after{content:"Início"}
+  .nav button[data-view="calendar"]::before{content:"▦"}
+  .nav button[data-view="calendar"]::after{content:"Mês"}
+  .nav button[data-view="week"]::before{content:"▤"}
+  .nav button[data-view="week"]::after{content:"Semana"}
+  .nav button[data-view="timeline"]::before{content:"≡"}
+  .nav button[data-view="timeline"]::after{content:"Agenda"}
+  .nav button[data-view="disciplines"]::before{content:"▥"}
+  .nav button[data-view="disciplines"]::after{content:"Matérias"}
+  .nav button[data-view="favorites"]::before{content:"☆"}
+  .nav button[data-view="favorites"]::after{content:"Favoritos"}
+  .nav button[data-view="settings"]::before{content:"⚙"}
+  .nav button[data-view="settings"]::after{content:"Ajustes"}
+  .nav button.active{
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+
+  /* Cards de resumo compactos, mas com números grandes */
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+    margin:10px 0;
+  }
+  .stats .card{
+    min-height:82px;
+    padding:12px;
+    border-radius:14px;
+  }
+  .metric{font-size:29px}
+  .label{font-size:12px}
+
+  .card,.panel{border-radius:15px}
+  .panel{padding:13px}
+  .panel h2{
+    font-size:18px;
+    margin-bottom:11px;
+  }
+
+  .progress{
+    padding:12px;
+    margin-bottom:10px;
+  }
+  .progress-head{font-size:13px}
+  .track{height:8px}
+
+  /* Legenda horizontal rolável */
+  .legend{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    padding:2px 1px 7px;
+    margin:8px 0;
+    scrollbar-width:none;
+  }
+  .legend::-webkit-scrollbar{display:none}
+  .legend button{
+    flex:0 0 auto;
+    padding:7px 9px;
+    font-size:12px;
+  }
+
+  /* Próximo evento por disciplina */
+  .next-disc-section{margin:10px 0}
+  .next-disc-section .panel{padding:12px}
+  .next-disc-grid{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .next-disc-card{
+    padding:12px;
+    border-radius:14px;
+  }
+  .next-disc-days{font-size:21px}
+  .next-disc-title{
+    font-size:13px;
+    margin-top:8px;
+  }
+  .next-disc-meta,.next-disc-link{font-size:11px}
+
+  /* Gráficos em uma coluna e maiores */
+  .chart-grid{
+    grid-template-columns:1fr;
+    gap:10px;
+    margin:10px 0;
+  }
+  .chart-panel{min-height:auto}
+  .donut{width:180px;height:180px}
+  .donut:after{width:108px;height:108px}
+  .donut-center strong{font-size:29px}
+  .chart-list,.discipline-chart{gap:11px}
+  .chart-row,.discipline-chart .chart-row{
+    grid-template-columns:92px minmax(100px,1fr) 56px;
+    gap:7px;
+  }
+  .chart-name{
+    font-size:11px;
+    line-height:1.15;
+  }
+  .stacked{height:16px}
+  .chart-values{font-size:10px}
+
+  /* Conteúdo vertical no celular */
+  .grid-2{grid-template-columns:1fr;gap:10px}
+  .quick{padding:10px}
+  .heavy-row{
+    grid-template-columns:70px 1fr 25px;
+    padding:10px;
+    font-size:12px;
+  }
+
+  /* Timeline e agenda mais legíveis */
+  .trow{
+    grid-template-columns:52px 9px 1fr;
+    gap:7px;
+  }
+  .tdate{font-size:10px;padding-top:3px}
+  .tdot{width:9px;height:9px}
+  .tcard{
+    padding:11px 37px 11px 11px;
+    border-radius:12px;
+  }
+  .tcard b{
+    font-size:13px;
+    line-height:1.25;
+  }
+  .tcard small{
+    font-size:11px;
+    line-height:1.2;
+  }
+  .fav,.done{
+    font-size:16px;
+    top:7px;
+  }
+  .fav{right:5px}
+  .done{right:28px}
+
+  /* Calendário: uma coluna e dias maiores */
+  .calendar-grid{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .month{border-radius:15px}
+  .mhead{
+    padding:13px 14px;
+    font-size:16px;
+  }
+  .week div{
+    padding:7px 2px;
+    font-size:9px;
+  }
+  .day{
+    min-height:52px;
+    padding:6px 1px;
+    border-radius:8px;
+  }
+  .num{font-size:14px}
+  .marks{margin-top:6px;gap:2px}
+  .mark{width:7px;height:7px}
+
+  /* A lista extensa de cada mês fica recolhida no celular */
+  .mobile-month-toggle{
+    display:block;
+    width:calc(100% - 20px);
+    margin:0 10px 10px;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--ink);
+    border-radius:10px;
+    padding:9px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .month .mlist{
+    display:none;
+    padding:10px;
+  }
+  .month.mobile-open .mlist{display:block}
+  .mrow{
+    grid-template-columns:48px 1fr;
+    gap:7px;
+    margin:8px 0;
+  }
+  .mrow b{font-size:12px}
+  .mrow small{font-size:11px}
+
+  /* Semana: colunas grandes e rolagem horizontal */
+  .week-board{
+    grid-template-columns:repeat(7,78vw);
+    scroll-snap-type:x mandatory;
+    gap:8px;
+  }
+  .week-column{
+    min-height:210px;
+    scroll-snap-align:start;
+  }
+  .week-event{
+    font-size:12px;
+    padding:8px;
+  }
+
+  /* Disciplinas e ajustes */
+  .disc-grid,.settings-grid{grid-template-columns:1fr}
+  .disc-card{padding:14px}
+  .disc-count{font-size:29px}
+  .mini{font-size:12px}
+
+  /* Painel lateral vira modal inferior */
+  .sheet{
+    top:auto;
+    left:0;
+    right:0;
+    bottom:0;
+    width:100%;
+    max-height:82vh;
+    border-radius:22px 22px 0 0;
+    padding:16px;
+  }
+  .sheet .trow{grid-template-columns:48px 8px 1fr}
+
+  .footer{
+    margin:16px 0 82px;
+    font-size:10px;
+  }
+}

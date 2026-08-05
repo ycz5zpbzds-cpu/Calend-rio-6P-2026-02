@@ -90,7 +90,7 @@ function shell(){
         <div>
           <div class="eyebrow">${S.data.meta.subtitle}</div>
           <h1>${S.data.meta.title}</h1>
-          <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V5</div>
+          <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V6 Mobile</div>
         </div>
         <div id="countdown" class="countdown"></div>
       </section>
@@ -341,6 +341,7 @@ function calendar(){
       <div class="mhead"><span>${MONTHS[m].toUpperCase()}</span><span>2026</span></div>
       <div class="week">${WD.map(x=>`<div>${x}</div>`).join("")}</div>
       <div class="days">${cells}</div>
+      <button class="mobile-month-toggle" type="button">Ver eventos do mês</button>
       <div class="mlist">${
         list.length?list.map(e=>`<div class="mrow">
           <span class="chip" style="background:${disc(e.disc).color}">${fmt(e.date)}</span>
@@ -456,6 +457,11 @@ function bind(){
     save();render();toast("Marcação atualizada");
   });
   $$("[data-day]").forEach(b=>b.onclick=()=>openDay(b.dataset.day));
+  $$(".mobile-month-toggle").forEach(button=>button.onclick=()=>{
+    const month=button.closest(".month");
+    const opened=month.classList.toggle("mobile-open");
+    button.textContent=opened?"Ocultar eventos do mês":"Ver eventos do mês";
+  });
 
   $("#prevWeek").onclick=()=>{S.weekOffset--;weekView();bindWeek()};
   $("#nextWeek").onclick=()=>{S.weekOffset++;weekView();bindWeek()};
