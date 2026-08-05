@@ -10,9 +10,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=21">
-  <link id="appFavicon" rel="icon" href="./icon.svg?v=21" type="image/svg+xml">
-  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=21">
+  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=22">
+  <link id="appFavicon" rel="icon" href="./icon.svg?v=22" type="image/svg+xml">
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=22">
   <title>Calendário Medicina UFMG — 6º Período — 2026/2</title>
   <style>
 :root{
@@ -889,6 +889,82 @@ body.dark .sheet-btn.danger{
   .cd-num.timer{font-size:29px;letter-spacing:-.7px}
 }
 
+
+/* ===== V22: indicadores clicáveis do dashboard ===== */
+.metric-card{
+  position:relative;
+  display:grid;
+  grid-template-columns:1fr auto;
+  grid-template-areas:
+    "metric icon"
+    "label icon"
+    "action action";
+  width:100%;
+  min-width:0;
+  text-align:left;
+  color:inherit;
+  font:inherit;
+  border:1px solid var(--line);
+  background:var(--panel);
+  cursor:pointer;
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+.metric-card:hover{
+  transform:translateY(-2px);
+  border-color:color-mix(in srgb,var(--accent) 42%,var(--line));
+  box-shadow:0 13px 28px rgba(15,23,42,.10);
+}
+.metric-card:active{transform:translateY(0)}
+.metric-card:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--accent) 38%,transparent);
+  outline-offset:2px;
+}
+.metric-card .metric{
+  grid-area:metric;
+  display:block;
+}
+.metric-card .label{
+  grid-area:label;
+  display:block;
+  font-weight:800;
+}
+.metric-card-icon{
+  grid-area:icon;
+  align-self:start;
+  font-size:25px;
+  line-height:1;
+  opacity:.92;
+}
+.metric-card-action{
+  grid-area:action;
+  display:block;
+  margin-top:12px;
+  padding-top:10px;
+  border-top:1px solid var(--line);
+  color:var(--accent);
+  font-size:11px;
+  font-weight:900;
+}
+.metric-drawer-summary{
+  display:grid;
+  gap:5px;
+  margin:4px 0 17px;
+  padding:13px 14px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--soft);
+}
+.metric-drawer-summary b{font-size:14px}
+.metric-drawer-summary span{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+}
+@media(max-width:700px){
+  .metric-card{min-height:126px}
+  .metric-card-action{font-size:10px}
+}
+
 </style>
 </head>
 <body>
@@ -921,14 +997,14 @@ const S={
   sync:{status:"loading",message:"Carregando planilha…",updatedAt:null,remoteCount:0},
   api:{status:"loading",message:"Conectando automaticamente…",updatedAt:null,version:"",configRevision:""},
   defaultDisciplineStyles:{},
-  appIcon:{url:"./icon.svg?v=21",updatedAt:"",custom:false}
+  appIcon:{url:"./icon.svg?v=22",updatedAt:"",custom:false}
 };
 
 const DISC_STYLE_KEY="medicinaUFMG_discStyles_v1";
 
 const CHART_STYLE_KEY="medicinaUFMG_chartStyles_v1";
 const EVENT_EDIT_KEY="medicinaUFMG_eventEdits_v1";
-const DEFAULT_APP_ICON="./icon.svg?v=21";
+const DEFAULT_APP_ICON="./icon.svg?v=22";
 let dynamicManifestUrl="";
 let pendingAppIconDataUrl="";
 let styleSaveTimer=null;
@@ -1123,7 +1199,7 @@ function updateDynamicManifest(iconUrl){
   const manifest={
     name:"Calendário Medicina UFMG — 6º Período — 2026/2",
     short_name:"Medicina UFMG",
-    start_url:"./?build=21",
+    start_url:"./?build=22",
     scope:"./",
     display:"standalone",
     background_color:"#F4F2EC",
@@ -1168,7 +1244,7 @@ function applyAppIcon(siteConfig={}){
       URL.revokeObjectURL(dynamicManifestUrl);
       dynamicManifestUrl="";
     }
-    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=21");
+    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=22");
   }
 
   document.querySelectorAll("[data-app-icon-preview]").forEach(image=>{
@@ -2071,7 +2147,7 @@ function shell(){
             </div>
             <div class="eyebrow">${S.data.meta.subtitle}</div>
             <h1>${S.data.meta.title}</h1>
-            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V21 CRONÔMETRO 24H</div>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V22 DASHBOARD CLICÁVEL</div>
           </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -2221,26 +2297,82 @@ function nextDisciplineCards(){
   </section>`;
 }
 
+
+function dashboardMetricEvents(key){
+  const events=S.data.events.filter(visible);
+
+  if(key==="events")return events;
+  if(key==="assessments")return events.filter(e=>eventKind(e)==="assessment");
+  if(key==="gds")return events.filter(e=>eventKind(e)==="gd");
+  if(key==="ambulatory")return events.filter(e=>eventKind(e)==="ambulatory");
+  if(key==="pending")return events.filter(e=>!isPast(e));
+  if(key==="concluded")return events.filter(isPast);
+
+  return [];
+}
+
+function dashboardMetricTitle(key,count){
+  const labels={
+    events:count===1?"evento":"eventos",
+    assessments:count===1?"avaliação":"avaliações",
+    gds:count===1?"GD":"GDs",
+    ambulatory:count===1?"ambulatório":"ambulatórios",
+    pending:count===1?"atividade pendente":"atividades pendentes",
+    concluded:count===1?"atividade concluída":"atividades concluídas"
+  };
+
+  return `${count} ${labels[key]||"eventos"}`;
+}
+
+function openDashboardMetric(key){
+  const events=dashboardMetricEvents(key)
+    .slice()
+    .sort((a,b)=>dateKey(a.date)-dateKey(b.date));
+
+  $("#drawerTitle").textContent=dashboardMetricTitle(key,events.length);
+
+  const hasFilters=
+    S.type!=="all"||
+    !!S.query||
+    S.active.size!==Object.keys(S.data.disciplines).length;
+
+  $("#drawerBody").innerHTML=`
+    <div class="metric-drawer-summary">
+      <b>${events.length} ${events.length===1?"item encontrado":"itens encontrados"}</b>
+      <span>${hasFilters?"Considerando os filtros atualmente ativos no calendário.":"Lista completa do indicador selecionado."}</span>
+    </div>
+    ${rows(events)}
+  `;
+
+  $("#drawer").classList.add("show");
+  bindDrawer();
+}
+
 function dashboard(){
   const ev=S.data.events.filter(visible);
   const now=new Date();
   const future=futureEvents(ev);
   const summary=statusSummary(ev);
   const counts=[
-    ["Eventos",ev.length],
-    ["Avaliações",ev.filter(e=>eventKind(e)==="assessment").length],
-    ["GDs",ev.filter(e=>eventKind(e)==="gd").length],
-    ["Ambulatórios",ev.filter(e=>eventKind(e)==="ambulatory").length],
-    ["Pendentes",summary.pending],
-    ["Concluídas",summary.concluded]
+    {key:"events",label:"Eventos",value:ev.length,icon:"📚"},
+    {key:"assessments",label:"Avaliações",value:ev.filter(e=>eventKind(e)==="assessment").length,icon:"📝"},
+    {key:"gds",label:"GDs",value:ev.filter(e=>eventKind(e)==="gd").length,icon:"💬"},
+    {key:"ambulatory",label:"Ambulatórios",value:ev.filter(e=>eventKind(e)==="ambulatory").length,icon:"🩺"},
+    {key:"pending",label:"Pendentes",value:summary.pending,icon:"⏳"},
+    {key:"concluded",label:"Concluídas",value:summary.concluded,icon:"✅"}
   ];
   const ss=dateKey(S.data.meta.semesterStart),se=dateKey(S.data.meta.semesterEnd);
   const pct=Math.round(Math.min(1,Math.max(0,(todayKey()-ss)/(se-ss)))*100);
   const donutAngle=summary.total?summary.concluded/summary.total*360:0;
 
   $("#dashboard").innerHTML=`
-    <div class="stats">${counts.map(([k,v])=>
-      `<div class="card"><div class="metric">${v}</div><div class="label">${k}</div></div>`).join("")}
+    <div class="stats">${counts.map(item=>
+      `<button type="button" class="card metric-card" data-dashboard-filter="${item.key}" aria-label="Ver ${item.value} ${item.label.toLowerCase()}">
+        <span class="metric-card-icon">${item.icon}</span>
+        <span class="metric">${item.value}</span>
+        <span class="label">${item.label}</span>
+        <span class="metric-card-action">Ver todos →</span>
+      </button>`).join("")}
     </div>
     <div class="card progress">
       <div class="progress-head"><b>Progresso do semestre</b><span>${pct}%</span></div>
@@ -2759,6 +2891,9 @@ function bind(){
     S.completed.has(x)?S.completed.delete(x):S.completed.add(x);
     save();render();toast("Marcação atualizada");
   });
+  $$("[data-dashboard-filter]").forEach(button=>{
+    button.onclick=()=>openDashboardMetric(button.dataset.dashboardFilter);
+  });
   $$("[data-day]").forEach(b=>b.onclick=()=>openDay(b.dataset.day));
   $$(".mobile-month-toggle").forEach(button=>button.onclick=()=>{
     const month=button.closest(".month");
@@ -2848,7 +2983,7 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=21",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=22",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     S.defaultDisciplineStyles=Object.fromEntries(

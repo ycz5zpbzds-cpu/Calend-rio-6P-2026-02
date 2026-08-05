@@ -1,16 +1,16 @@
-# V21 — cronômetro nas últimas 24 horas
+# V22 — dashboard clicável
 
-Comportamento:
-- acima de 24 horas: mostra dias faltando;
-- 24 horas ou menos, com horário exato: mostra HH:MM:SS;
-- ao alcançar o horário: mostra AGORA;
-- eventos sem horário exato continuam mostrando HOJE;
-- usa sempre o fuso America/Sao_Paulo;
-- reconhece formatos como 20h, 13h15, 14h–15h30 e 10:30–11:30.
+Novidade:
+- os seis indicadores do dashboard agora são botões;
+- clicar em Eventos, Avaliações, GDs, Ambulatórios, Pendentes ou Concluídas
+  abre uma lista lateral com todos os itens daquele indicador;
+- a lista respeita os filtros de disciplina, busca e tipo que estiverem ativos;
+- funciona no computador e no celular;
+- dentro da lista ainda é possível favoritar e marcar eventos manualmente.
 
 Esta versão altera somente o site. Não é necessário mexer no Apps Script.
 
 Publicação:
-1. Substituir no GitHub: index.html, eventos.json, manifest.webmanifest e icon.svg.
-2. Abrir:
-https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/?build=21
+1. Substitua no GitHub: index.html, eventos.json, manifest.webmanifest e icon.svg.
+2. Abra:
+https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/?build=22
