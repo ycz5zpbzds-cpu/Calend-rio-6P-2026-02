@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendário Turma A — Versão Final 2026/2</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+:root{
+  --paper:#F7F6F2;
+  --card:#FFFFFF;
+  --ink:#1C1E21;
+  --ink-soft:#5B6068;
+  --line:#E1DFD8;
+  --AP:#7C3AED;
+  --PED:#059669;
+  --CLM:#EA580C;
+  --CIR:#DC2626;
+  --PC2:#2563EB;
+  --GOB:#DB2777;
+  --GERAL:#94A3B8;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--paper);
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-attachment:local;
+  font-family:'IBM Plex Sans', sans-serif;
+  color:var(--ink);
+  padding:28px 16px 60px;
+}
+.wrap{max-width:1180px;margin:0 auto;}
+
+/* ---- header ---- */
+header{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:22px 26px;
+  margin-bottom:18px;
+  position:relative;
+  overflow:hidden;
+}
+header::before{
+  content:"";
+  position:absolute; top:0; left:0; width:6px; height:100%;
+  background:repeating-linear-gradient(180deg,
+    var(--AP) 0 16.6%, var(--PED) 16.6% 33.2%, var(--CLM) 33.2% 49.8%,
+    var(--CIR) 49.8% 66.4%, var(--PC2) 66.4% 83%, var(--GOB) 83% 100%);
+}
+.eyebrow{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-soft); margin:0 0 6px 14px;
+}
+h1{
+  margin:0 0 4px 14px; font-size:26px; font-weight:700; letter-spacing:-0.01em;
+}
+.sub{margin:0 0 0 14px; color:var(--ink-soft); font-size:14px;}
+
+/* ---- legend ---- */
+.legend{
+  display:flex; flex-wrap:wrap; gap:8px 18px;
+  background:var(--card); border:1px solid var(--line); border-radius:4px;
+  padding:14px 18px; margin-bottom:22px;
+}
+.legend-item{display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:500;}
+.dot{width:9px; height:9px; border-radius:50%; flex:none;}
+
+/* ---- months grid ---- */
+.months{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+  gap:16px;
+}
+.month{
+  background:var(--card); border:1px solid var(--line); border-radius:4px;
+  overflow:hidden; display:flex; flex-direction:column;
+}
+.month-head{
+  padding:12px 16px 10px;
+  border-bottom:1px solid var(--line);
+  display:flex; align-items:baseline; justify-content:space-between;
+}
+.month-name{font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:.04em;}
+.month-year{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft);}
+
+.grid7{
+  display:grid; grid-template-columns:repeat(7,1fr);
+  padding:8px 10px 4px;
+}
+.wd{
+  font-family:'IBM Plex Mono',monospace; font-size:9.5px; text-align:center;
+  color:var(--ink-soft); padding-bottom:6px; letter-spacing:.02em;
+}
+.day{
+  position:relative; min-height:46px; margin:1.5px;
+  border-radius:3px; border:1px solid transparent;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  padding-top:4px; font-family:'IBM Plex Mono',monospace; font-size:11.5px;
+  cursor:default;
+}
+.day.empty{visibility:hidden;}
+.day .num{font-weight:500;}
+.day.has-event .num{font-weight:700;}
+.day.today-marker{outline:1.5px dashed var(--ink-soft);}
+.dots{display:flex; gap:2.5px; margin-top:3px; flex-wrap:wrap; justify-content:center; max-width:34px;}
+.evdot{width:6px; height:6px; border-radius:50%;}
+.day.range-bg{border-radius:3px;}
+
+.month-list{
+  padding:10px 16px 16px; border-top:1px dashed var(--line);
+  font-size:12px; line-height:1.55;
+}
+.month-list .none{color:var(--ink-soft); font-style:italic;}
+.ev-row{display:flex; gap:8px; align-items:flex-start; margin-bottom:5px;}
+.ev-row .chip{
+  flex:none; font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:9.5px;
+  color:#fff; padding:1px 5px; border-radius:3px; white-space:nowrap; margin-top:1px;
+}
+.ev-row .txt b{font-weight:600;}
+.ev-row .txt .time{color:var(--ink-soft); font-size:11px;}
+
+/* ---- pending section ---- */
+.pending{
+  margin-top:22px; background:var(--card); border:1px solid var(--line); border-radius:4px;
+  padding:18px 22px;
+}
+.pending h2{font-size:14px; text-transform:uppercase; letter-spacing:.06em; margin:0 0 10px;}
+.pending ul{margin:0; padding-left:18px; font-size:13px; line-height:1.7;}
+.pending li b{font-weight:600;}
+
+.docs{
+  margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:4px;
+  padding:18px 22px;
+}
+.docs h2{font-size:14px; text-transform:uppercase; letter-spacing:.06em; margin:0 0 4px;}
+.docs .docs-note{font-size:11.5px; color:var(--ink-soft); margin:0 0 12px;}
+.doc-group{margin-bottom:12px;}
+.doc-group summary{
+  cursor:pointer; font-weight:600; font-size:13px; padding:6px 0;
+  display:flex; align-items:center; gap:6px;
+}
+.doc-group summary::marker{color:var(--ink-soft);}
+.doc-group .files{padding:4px 0 4px 22px;}
+.doc-file{
+  font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft);
+  padding:3px 0; display:flex; gap:6px; align-items:baseline;
+}
+.doc-file .ic{flex:none;}
+
+.note{
+  margin-top:14px; font-size:11.5px; color:var(--ink-soft); text-align:center;
+  font-family:'IBM Plex Mono',monospace;
+}
+
+/* ---- toolbar ---- */
+.toolbar{
+  display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;
+  margin-bottom:14px;
+}
+.next-card{
+  flex:1 1 260px; background:var(--ink); color:#fff; border-radius:4px;
+  padding:14px 18px; display:flex; align-items:center; gap:14px;
+}
+.next-card .big{min-width:92px;text-align:center;font-family:'IBM Plex Mono',monospace; font-size:26px; font-weight:700; line-height:1;}
+.next-card .big span{font-size:12px; font-weight:500; display:block; text-transform:uppercase; letter-spacing:.06em; opacity:.6; margin-top:2px;}
+.next-card .info b{display:block; font-size:13.5px;}
+.next-card .info small{color:#C7CBD1; font-size:11.5px;}
+.ics-btn{
+  flex:none; background:var(--card); border:1px solid var(--ink); color:var(--ink);
+  font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:13px;
+  padding:12px 18px; border-radius:4px; cursor:pointer; transition:.15s;
+}
+.ics-btn:hover{background:var(--ink); color:#fff;}
+.ics-btn:active{transform:scale(.98);}
+
+.legend-item{
+  padding:4px 8px; border-radius:20px; border:1px solid transparent; transition:.12s;
+  user-select:none; cursor:pointer; -webkit-tap-highlight-color:transparent;
+}
+.legend-item:hover{background:var(--paper);}
+.legend-item.off{opacity:.35;}
+.legend-item.off .dot{background:var(--ink-soft) !important;}
+.legend-hint{font-size:11px; color:var(--ink-soft); width:100%; margin:-4px 0 2px 2px; font-style:italic;}
+
+.day.filtered-out{opacity:.22;}
+.ev-row.hidden-row{display:none;}
+
+/* ---- versão final ---- */
+body.dark{
+  --paper:#111315;
+  --card:#1A1D21;
+  --ink:#F3F4F6;
+  --ink-soft:#A7ADB7;
+  --line:#30343B;
+}
+body.dark .ics-btn,
+body.dark .search,
+body.dark .type-filter{
+  background:var(--card);
+  color:var(--ink);
+  border-color:var(--line);
+}
+body.dark .next-card{background:#0B0D0F}
+body.dark .month-list .time{color:#B8BEC8}
+body.dark .day.range-bg{filter:brightness(.72)}
+body.dark .day.has-event{background:#20242A}
+body.dark .toolbar-final{background:rgba(17,19,21,.92)}
+
+.toolbar-final{
+  position:sticky; top:0; z-index:20;
+  display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+  padding:10px 0 12px; margin-bottom:10px;
+  background:rgba(247,246,242,.94);
+  backdrop-filter:blur(8px);
+}
+.search{
+  flex:1 1 240px; min-width:190px;
+  border:1px solid var(--line); border-radius:4px;
+  padding:11px 12px; font:500 13px 'IBM Plex Sans',sans-serif;
+  background:var(--card); color:var(--ink);
+}
+.type-filter{
+  border:1px solid var(--line); border-radius:4px;
+  padding:10px 11px; background:var(--card); color:var(--ink);
+  font:600 12px 'IBM Plex Sans',sans-serif;
+}
+.theme-btn{
+  border:1px solid var(--line); border-radius:4px;
+  background:var(--card); color:var(--ink);
+  padding:10px 12px; cursor:pointer; font-weight:700;
+}
+.quick-filters{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.quick-filter{
+  border:1px solid var(--line); border-radius:999px;
+  background:var(--card); color:var(--ink);
+  padding:6px 10px; cursor:pointer; font:600 11px 'IBM Plex Sans',sans-serif;
+}
+.quick-filter.active{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.today-ring{outline:2px solid #111827;outline-offset:-2px}
+body.dark .today-ring{outline-color:#F8FAFC}
+.event-count{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);
+  margin-left:auto;
+}
+@media(max-width:640px){
+  body{padding:14px 8px 40px}
+  .wrap{max-width:100%}
+  header{padding:18px 16px}
+  h1{font-size:21px}
+  .sub{font-size:12px}
+  .toolbar{gap:8px}
+  .next-card{padding:12px 14px}
+  .next-card .big{font-size:22px;min-width:72px}
+  .months{grid-template-columns:1fr}
+  .month-list{font-size:11.5px}
+  .ics-btn{width:100%}
+  .toolbar-final{top:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Ciclo Clínico · 6º Período</p>
+    <h1>Calendário de Avaliações — Turma A</h1>
+    <p class="sub">2º Semestre 2026 · agosto a dezembro · avaliações, GDs, aulas e ambulatórios · Turma A</p>
+  </header>
+
+  
+  <div class="toolbar-final">
+    <input id="searchInput" class="search" type="search" placeholder="Buscar prova, GD, ambulatório, tema…">
+    <select id="typeFilter" class="type-filter" aria-label="Filtrar por tipo">
+      <option value="all">Todos os tipos</option>
+      <option value="assessment">Só avaliações/provas</option>
+      <option value="gd">Só GDs</option>
+      <option value="ambulatory">Só ambulatório/consultas</option>
+      <option value="class">Só aulas/ATs</option>
+      <option value="pending">Só a confirmar</option>
+    </select>
+    <button id="themeBtn" class="theme-btn" type="button">🌙 Modo escuro</button>
+    <div class="quick-filters">
+      <button class="quick-filter active" data-range="all">Tudo</button>
+      <button class="quick-filter" data-range="7">Próximos 7 dias</button>
+      <button class="quick-filter" data-range="30">Próximos 30 dias</button>
+      <span class="event-count" id="eventCount"></span>
+    </div>
+  </div>
+
+<div class="toolbar">
+    <div class="next-card" id="nextCard"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="ics-btn" id="icsBtn">📅 Exportar tudo em um calendário</button><button class="ics-btn" id="icsByDiscBtn">🎨 Exportar por matéria (cores no iPhone)</button></div>
+  </div>
+
+  <p class="legend-hint">Toque numa disciplina pra mostrar/ocultar no calendário e na exportação</p>
+  <div class="legend" id="legend"></div>
+
+  <div class="months" id="months"></div>
+
+  <div class="pending">
+    <h2>Datas ainda não definidas</h2>
+    <ul>
+      <li><b>Patologia Clínica 2</b> — Prova final (data a definir pela coordenação)</li>
+      <li><b>Ginecologia Básica</b> — AV3 Prova Final (a ser marcada pelo CEGRAD)</li>
+      <li><b>Cirurgia II</b> — Prova suplementar (definida conforme necessidade, regras do CEGRAD)</li>
+      <li><b>Cirurgia II — Ambulatório</b> — divisão A1/A2 vs A3/A4 publicada só até 27/08 na escala oficial; setembro a novembro ainda não foram preenchidos pela coordenação</li>
+      <li><b>Clínica Médica III</b> — GD/temas de Terça-Sexta reconstruídos a partir da agenda 2025 da Carmo-Sion (mesma cadência letiva bate certinho com 2026); tratar como <b>estimativa</b> até confirmar com o preceptor — marcados com "base 2025" no calendário</li>
+    </ul>
+  </div>
+
+  <div class="docs">
+    <h2>📁 Documentos-fonte por disciplina</h2>
+    <p class="docs-note">Para conferência rápida do original — nomes dos arquivos enviados no chat (não são links clicáveis; ver observação abaixo).</p>
+
+    <details class="doc-group" open>
+      <summary>Anatomia Patológica (APM 002)</summary>
+      <div class="files">
+        <div class="doc-file"><span class="ic">🖼️</span> PHOTO-2026-07-30-10-25-18.jpg (cronograma/quadro)</div>
+      </div>
+    </details>
+
+    <details class="doc-group">
+      <summary>Pediatria III</summary>
+      <div class="files">
+        <div class="doc-file"><span class="ic">📄</span> apresentacao_da_disciplina_2026_2_.pdf</div>
+      </div>
+    </details>
+
+    <details class="doc-group">
+      <summary>Clínica Médica III</summary>
+      <div class="files">
+        <div class="doc-file"><span class="ic">📄</span> Notes_260802_183643.pdf (slides da disciplina)</div>
+        <div class="doc-file"><span class="ic">📊</span> AGENDA_CLM3_-_CARMO-SION.xlsx (sem aba 2026-2)</div>
+      </div>
+    </details>
+
+    <details class="doc-group">
+      <summary>Cirurgia II (CIR 035)</summary>
+      <div class="files">
+        <div class="doc-file"><span class="ic">📄</span> 2026_2º_sem__Plano_de_Ensino_CIR_II.pdf</div>
+        <div class="doc-file"><span class="ic">📊</span> Escala_de_atividades_-_CIR_II_-_2_sem_2026.xlsx</div>
+      </div>
+    </details>
+
+    <details class="doc-group">
+      <summary>Patologia Clínica 2</summary>
+      <div class="files">
+        <div class="doc-file"><span class="ic">📄</span> Cronograma_PC2__2026-2_inicial.docx</div>
+      </div>
+    </details>
+
+    <details class="doc-group">
+      <summary>Ginecologia Básica (GOB-015)</summary>
+      <div class="files">
+        <div class="doc-file"><span class="ic">📄</span> Programa_AAC_GOB015_2o_sem2026.docx</div>
+        <div class="doc-file"><span class="ic">📄</span> Logobook.docx</div>
+      </div>
+    </details>
+
+    <p class="docs-note" style="margin-top:10px;">⚠️ Este calendário é um arquivo local (HTML) — ele não tem acesso à internet nem ao seu Google Drive, então não consigo gerar um link real de pasta aqui dentro. Se quiser, posso <b>subir esses arquivos no seu Google Drive</b> (já conectado) e te passar o link da pasta de verdade — só confirma que quer isso.</p>
+  </div>
+
+  <p class="note">Toque ou passe o mouse sobre um dia marcado para ver o detalhe · versão final 2026/2</p>
+  <p class="note">O .ics exportado já vem com 2 lembretes por evento: 5 dias antes e 1 dia antes</p>
+</div>
+
+<script>
+const DISC = {
+  AP:  {name:"Anatomia Patológica",   color:"var(--AP)", hex:"#7C3AED"},
+  PED: {name:"Pediatria III",         color:"var(--PED)", hex:"#059669"},
+  CLM: {name:"Clínica Médica III",    color:"var(--CLM)", hex:"#EA580C"},
+  CIR: {name:"Cirurgia II", color:"var(--CIR)", hex:"#DC2626"},
+  PC2: {name:"Patologia Clínica 2",   color:"var(--PC2)", hex:"#2563EB"},
+  GOB: {name:"Ginecologia Básica",    color:"var(--GOB)", hex:"#DB2777"},
+  GERAL:{name:"Semana de provas (geral)", color:"var(--GERAL)", hex:"#94A3B8"}
+};
+
+// events: {date:'YYYY-MM-DD', end:'YYYY-MM-DD' (optional, range), disc, label, time}
+const EVENTS = [
+  {date:"2026-08-10", end:"2026-08-13", disc:"PED", label:"GD avaliativo — Atraso DNPM e TEA"},
+  {date:"2026-08-29", disc:"AP", label:"Prova Modular 1 — Sistema Genital", time:"sáb, 10h–11h30"},
+
+  {date:"2026-09-14", end:"2026-09-17", disc:"PED", label:"Salto Triplo (atividade avaliativa)"},
+  {date:"2026-09-26", disc:"AP", label:"Prova Modular 2 — Sistema Nervoso", time:"sáb, 10h–10h30"},
+
+  {date:"2026-10-01", disc:"AP", label:"2ª chamada — Genital e Urinário", time:"qui, 12h–13h30"},
+  {date:"2026-10-01", disc:"PC2", label:"Avaliação parcial"},
+  {date:"2026-10-05", end:"2026-10-08", disc:"PED", label:"Prova parcial (60 min, início da aula)"},
+  {date:"2026-10-05", disc:"GOB", label:"AV1 — Prova Parcial", time:"seg, 18h–20h"},
+  {date:"2026-10-06", disc:"CIR", label:"AV1 — Avaliação parcial (Clínica Cirúrgica)", time:"14h–15h30, Turma A e C"},
+  {date:"2026-10-24", disc:"AP", label:"Prova Modular 3 — Genito-Urinário", time:"sáb, 10h–11h30"},
+  {date:"2026-10-25", disc:"CLM", label:"Atividade Integradora (tarde) — data a confirmar"},
+  {date:"2026-10-26", disc:"PED", label:"Atividade Integradora — 1º Caso"},
+  {date:"2026-10-26", end:"2026-10-27", disc:"CIR", label:"AV6 — Atividade Integradora"},
+  {date:"2026-10-26", end:"2026-10-27", disc:"GOB", label:"AV6 — Atividade Integradora"},
+  {date:"2026-10-27", disc:"PED", label:"Atividade Integradora — 2º Caso"},
+  {date:"2026-10-27", disc:"CLM", label:"Atividade Integradora (manhã) — data a confirmar"},
+
+  {date:"2026-11-09", end:"2026-11-12", disc:"GOB", label:"AV2 — Mini OSCE (sem ambulatório)"},
+  {date:"2026-11-13", end:"2026-11-19", disc:"CIR", label:"AV4 — Avaliação teórica Cirurgia Ambulatorial", time:"15h, sala 150"},
+  {date:"2026-11-24", disc:"PED", label:"Prova final"},
+  {date:"2026-11-24", end:"2026-12-02", disc:"GERAL", label:"Semana de provas finais (geral)"},
+  {date:"2026-11-25", disc:"AP", label:"Prova Modular 4 — Tópicos", time:"8h–9h30, Salão Nobre/Sala 138"},
+  {date:"2026-11-26", disc:"CLM", label:"Prova final (data provável)"},
+  {date:"2026-11-27", disc:"CIR", label:"AV2 — Avaliação final (Clínica Cirúrgica)", time:"13h–14h30"},
+  {date:"2026-11-30", disc:"GOB", label:"Prazo final AV7–AV13 (atividades Moodle)"},
+
+  {date:"2026-12-03", disc:"AP", label:"2ª chamada — Nervoso e Tópicos", time:"9h–10h"},
+  {date:"2026-12-07", disc:"AP", label:"Exame especial"},
+  {date:"2026-12-07", disc:"CLM", label:"Exame especial (a confirmar)"},
+
+  // ---- Cirurgia II — Clínica Cirúrgica: Aula Teórica + GD (Turma A, 3ª-feira, sala 463) ----
+  {date:"2026-08-04", disc:"CIR", label:"AT1 Conveniência/Avaliação Pré-op + Aula Inaugural + AT2 Avaliação anestesiológica", time:"13h15–17h15"},
+  {date:"2026-08-11", disc:"CIR", label:"AT3 Resposta Orgânica ao Trauma + GD1 (AT1–AT2)", time:"13h15–16h"},
+  {date:"2026-08-18", disc:"CIR", label:"AT4 Preparo pré-op geral + GD2 (AT3) + AT5 Preparo pré-op especial", time:"13h15–17h15"},
+  {date:"2026-08-25", disc:"CIR", label:"AT6 Cirurgia no paciente Hipertenso/Cardiopata + GD3 (AT4–AT5)", time:"13h15–16h"},
+  {date:"2026-09-01", disc:"CIR", label:"AT7 Cirurgia no paciente Diabético + GD4 (AT6) + AT8 Cirurgia no paciente Desnutrido", time:"13h15–17h15"},
+  {date:"2026-09-08", disc:"CIR", label:"AT9 Cirurgia no paciente Oncológico + GD5 (AT7–AT8)", time:"13h15–16h"},
+  {date:"2026-09-15", disc:"CIR", label:"AT10 Cirurgia hepatopata/ictérico/alcoolista + GD6 (AT9) + AT11 Febre e infecção do sítio cirúrgico", time:"13h15–17h15"},
+  {date:"2026-09-22", disc:"CIR", label:"AT12 Antibioticoprofilaxia em cirurgia + GD7 (AT10)", time:"13h15–16h"},
+  {date:"2026-09-29", disc:"CIR", label:"AT13 Assistência médica pós-op + GD8 (AT11–AT12)", time:"13h15–16h"},
+  {date:"2026-10-13", disc:"CIR", label:"AT14 Hidratação venosa perioperatória + GD9 (AT13)", time:"13h15–16h"},
+  {date:"2026-10-20", disc:"CIR", label:"AT15 Complicações pós-op respiratórias/cardiovasculares + GD10 (AT14)", time:"13h15–16h"},
+  {date:"2026-10-27", disc:"CIR", label:"AT16 Complicações pós-op digestivas + GD11 (AT15)", time:"13h15–16h"},
+  {date:"2026-11-03", disc:"CIR", label:"AT17 Complicações pós-op urológicas + GD12 (AT16) + AT18 Profilaxia/tratamento TVP-TEP", time:"13h15–17h15"},
+  {date:"2026-11-10", disc:"CIR", label:"GD13 (AT17–AT18)", time:"13h15–14h15"},
+  {date:"2026-11-17", disc:"CIR", label:"Recesso — sem GD", time:"14h30–16h"},
+
+  // ---- Cirurgia II — Cirurgia Ambulatorial (Turma A, 5ª-feira, Ambulatório Borges da Costa) ----
+  {date:"2026-08-06", disc:"CIR", label:"GD+Triagem: A1 e A2 · Bloco/procedimentos: A3 e A4", time:"13h30–17h30"},
+  {date:"2026-08-13", disc:"CIR", label:"GD1+Triagem: A3 e A4 · Bloco/procedimentos: A1 e A2", time:"13h30–17h30"},
+  {date:"2026-08-20", disc:"CIR", label:"GD2+Triagem: A1 e A2 · Bloco/procedimentos: A3 e A4", time:"13h30–17h30"},
+  {date:"2026-08-27", disc:"CIR", label:"GD3+Triagem: A3 e A4 · Bloco/procedimentos: A1 e A2", time:"13h30–17h30"},
+  {date:"2026-09-03", disc:"CIR", label:"Cirurgia Ambulatorial (subgrupo A1–A4 não publicado na escala oficial)", time:"13h30–17h30"},
+  {date:"2026-09-10", disc:"CIR", label:"Cirurgia Ambulatorial (subgrupo não publicado)", time:"13h30–17h30"},
+  {date:"2026-09-17", disc:"CIR", label:"Cirurgia Ambulatorial (subgrupo não publicado)", time:"13h30–17h30"},
+  {date:"2026-09-24", disc:"CIR", label:"Cirurgia Ambulatorial (subgrupo não publicado)", time:"13h30–17h30"},
+  {date:"2026-10-01", disc:"CIR", label:"Cirurgia Ambulatorial (subgrupo não publicado)", time:"13h30–17h30"},
+  {date:"2026-10-08", disc:"CIR", label:"Cirurgia Ambulatorial (subgrupo não publicado)", time:"13h30–17h30"},
+  {date:"2026-10-15", disc:"CIR", label:"Cirurgia Ambulatorial (subgrupo não publicado)", time:"13h30–17h30"},
+  {date:"2026-10-22", disc:"CIR", label:"Cirurgia Ambulatorial (subgrupo não publicado)", time:"13h30–17h30"},
+  {date:"2026-10-29", disc:"CIR", label:"Cirurgia Ambulatorial (subgrupo não publicado)", time:"13h30–17h30"},
+  {date:"2026-11-05", disc:"CIR", label:"Cirurgia Ambulatorial (subgrupo não publicado)", time:"13h30–17h30"},
+  {date:"2026-11-12", disc:"CIR", label:"Cirurgia Ambulatorial (subgrupo não publicado)", time:"13h30–17h30"},
+  {date:"2026-11-19", disc:"CIR", label:"Cirurgia Ambulatorial — checar c/ coordenação (semana de recesso da CC)", time:"13h30–17h30"},
+
+  // ---- Clínica Médica III — GD Carmo-Sion, Turma A (3ª e 6ª de manhã) ----
+  // Base: agenda "2025-1" da Carmo-Sion remapeada p/ terças/sextas reais de 2026 (mesma cadência letiva) — confirmar c/ preceptor
+  {date:"2026-08-04", disc:"CLM", label:"Aula inicial — não marcar atendimentos", time:"base 2025 · a confirmar"},
+  {date:"2026-08-07", disc:"CLM", label:"Consultas de rotina (sem GD)", time:"3 consultas 7h30 · base 2025"},
+  {date:"2026-08-11", disc:"CLM", label:"GD 1 — Manifestações primárias do aparelho respiratório", time:"base 2025 · a confirmar"},
+  {date:"2026-08-14", disc:"CLM", label:"GD 2 — Manifestações secundárias do aparelho respiratório", time:"base 2025 · a confirmar"},
+  {date:"2026-08-18", disc:"CLM", label:"GD 3 — Principais síndromes pulmonares", time:"base 2025 · a confirmar"},
+  {date:"2026-08-21", disc:"CLM", label:"GD 4 — DPOC: manifestações clínicas", time:"base 2025 · a confirmar"},
+  {date:"2026-08-25", disc:"CLM", label:"GD 5 — Pneumonia adquirida na comunidade", time:"base 2025 · a confirmar"},
+  {date:"2026-08-28", disc:"CLM", label:"GD 6 — Insuficiência cardíaca (1)", time:"base 2025 · a confirmar"},
+  {date:"2026-09-01", disc:"CLM", label:"GD 7 — Insuficiência cardíaca (2)", time:"base 2025 · a confirmar"},
+  {date:"2026-09-04", disc:"CLM", label:"GD 8 — Insuficiência cardíaca (3)", time:"base 2025 · a confirmar"},
+  {date:"2026-09-08", disc:"CLM", label:"GD 9 — Valvopatias atrioventriculares", time:"base 2025 · a confirmar"},
+  {date:"2026-09-11", disc:"CLM", label:"GD 10 — Valvopatias semilunares", time:"base 2025 · a confirmar"},
+  {date:"2026-09-15", disc:"CLM", label:"Prova Parcial (local, ambulatório) — não é a prova escrita da disciplina", time:"base 2025 · a confirmar"},
+  {date:"2026-09-18", disc:"CLM", label:"GD 11 — Abordagem do paciente com hepatopatia", time:"base 2025 · a confirmar"},
+  {date:"2026-09-22", disc:"CLM", label:"GD 12 — Abordagem do paciente com ascite", time:"base 2025 · a confirmar"},
+  {date:"2026-09-25", disc:"CLM", label:"GD 13 — Hemorragia digestiva", time:"base 2025 · a confirmar"},
+  {date:"2026-09-29", disc:"CLM", label:"GD 14 — Semiologia do aparelho locomotor 1 (planilha-base cita 'prova parcial' em paralelo — checar)", time:"base 2025 · a confirmar"},
+  {date:"2026-10-02", disc:"CLM", label:"GD 15 — Semiologia do aparelho locomotor 2", time:"base 2025 · a confirmar"},
+  {date:"2026-10-06", disc:"CLM", label:"GD 16 — Semiologia neurológica 1", time:"base 2025 · a confirmar"},
+  {date:"2026-10-09", disc:"CLM", label:"GD 17 — Semiologia neurológica 2", time:"base 2025 · a confirmar"},
+  {date:"2026-10-13", disc:"CLM", label:"GD (tema não informado na planilha-base)", time:"base 2025 · a confirmar"},
+  {date:"2026-10-16", disc:"CLM", label:"GD (tema não informado na planilha-base)", time:"base 2025 · a confirmar"},
+  {date:"2026-10-20", disc:"CLM", label:"GD (tema não informado na planilha-base)", time:"base 2025 · a confirmar"},
+  {date:"2026-10-23", disc:"CLM", label:"Não marcar atendimentos — visita ao hospital", time:"base 2025 · a confirmar"},
+  {date:"2026-10-27", disc:"CLM", label:"Não marcar atendimentos — Atividade Integradora", time:"base 2025 · a confirmar"},
+  {date:"2026-10-30", disc:"CLM", label:"Não marcar atendimentos — visita ao hospital", time:"base 2025 · a confirmar"},
+  {date:"2026-11-03", disc:"CLM", label:"GD (tema não informado na planilha-base)", time:"base 2025 · a confirmar"},
+  {date:"2026-11-06", disc:"CLM", label:"GD (tema não informado na planilha-base)", time:"base 2025 · a confirmar"},
+  {date:"2026-11-10", disc:"CLM", label:"GD (tema não informado na planilha-base)", time:"base 2025 · a confirmar"},
+  {date:"2026-11-13", disc:"CLM", label:"GD (tema não informado na planilha-base)", time:"base 2025 · a confirmar"},
+  {date:"2026-11-17", disc:"CLM", label:"GD (tema não informado na planilha-base)", time:"base 2025 · a confirmar"},
+  {date:"2026-11-20", disc:"CLM", label:"Feriado — Consciência Negra (não marcar)", time:"confirmado no calendário oficial"},
+  {date:"2026-11-24", disc:"CLM", label:"Semana de provas finais (sem atendimento)", time:"base 2025 · a confirmar"},
+];
+function classifyEvent(ev){
+  const t=(ev.label+" "+(ev.time||"")).toLowerCase();
+  if(t.includes("a confirmar") || t.includes("base 2025") || t.includes("data provável")) return "pending";
+  if(t.includes("prova") || t.includes("av1") || t.includes("av2") || t.includes("av3") || t.includes("av4") || t.includes("av6") || t.includes("av7") || t.includes("av13") || t.includes("modular") || t.includes("exame especial") || t.includes("atividade integradora") || t.includes("avaliativo") || t.includes("avaliação parcial") || t.includes("avaliação final")) return "assessment";
+  if(t.includes("ambulatório") || t.includes("ambulatorial") || t.includes("triagem") || t.includes("consulta")) return "ambulatory";
+  if(t.includes("gd")) return "gd";
+  return "class";
+}
+EVENTS.forEach(ev=>ev.type=classifyEvent(ev));
+
+const MONTHS = [
+  {name:"Agosto",    idx:8,  year:2026, startWD:6, days:31}, // Sat
+  {name:"Setembro",  idx:9,  year:2026, startWD:2, days:30}, // Tue
+  {name:"Outubro",   idx:10, year:2026, startWD:4, days:31}, // Thu
+  {name:"Novembro",  idx:11, year:2026, startWD:0, days:30}, // Sun
+  {name:"Dezembro",  idx:12, year:2026, startWD:2, days:31}, // Tue
+];
+const WD_LABELS = ["D","S","T","Q","Q","S","S"];
+
+function pad(n){return n<10?"0"+n:""+n;}
+
+function dateInRange(dStr, ev){
+  const d = new Date(dStr+"T00:00:00");
+  const start = new Date(ev.date+"T00:00:00");
+  const end = new Date((ev.end||ev.date)+"T00:00:00");
+  return d>=start && d<=end;
+}
+
+// filter state — all disciplines visible by default
+const FILTER = {};
+Object.keys(DISC).forEach(k=> FILTER[k] = true);
+let TEXT_QUERY = "";
+let TYPE_QUERY = "all";
+let RANGE_QUERY = "all";
+
+function eventVisible(ev){
+  if(!FILTER[ev.disc]) return false;
+  if(TYPE_QUERY!=="all" && ev.type!==TYPE_QUERY) return false;
+  const hay=(DISC[ev.disc].name+" "+ev.label+" "+(ev.time||"")).toLowerCase();
+  if(TEXT_QUERY && !hay.includes(TEXT_QUERY)) return false;
+  if(RANGE_QUERY!=="all"){
+    const today=new Date(); today.setHours(0,0,0,0);
+    const start=new Date(ev.date+"T00:00:00");
+    const diff=(start-today)/86400000;
+    if(diff<0 || diff>Number(RANGE_QUERY)) return false;
+  }
+  return true;
+}
+
+// legend (clickable to toggle filter)
+const legendEl = document.getElementById("legend");
+Object.entries(DISC).forEach(([k,v])=>{
+  const item = document.createElement("div");
+  item.className = "legend-item";
+  item.dataset.disc = k;
+  item.innerHTML = `<span class="dot" style="background:${v.color}"></span>${v.name}`;
+  item.addEventListener("click", ()=>{
+    FILTER[k] = !FILTER[k];
+    item.classList.toggle("off", !FILTER[k]);
+    applyFilters();
+    computeNext();
+(function markToday(){
+  const now=new Date();
+  if(now.getFullYear()!==2026) return;
+  const iso=`2026-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.querySelectorAll(`.day[data-date="${iso}"]`).forEach(el=>el.classList.add("today-ring"));
+})();
+  });
+  legendEl.appendChild(item);
+});
+
+const monthsEl = document.getElementById("months");
+
+MONTHS.forEach(m=>{
+  const monthCard = document.createElement("div");
+  monthCard.className = "month";
+
+  const head = document.createElement("div");
+  head.className = "month-head";
+  head.innerHTML = `<span class="month-name">${m.name}</span><span class="month-year">${m.year}</span>`;
+  monthCard.appendChild(head);
+
+  const grid = document.createElement("div");
+  grid.className = "grid7";
+  WD_LABELS.forEach(l=>{
+    const wd = document.createElement("div");
+    wd.className = "wd";
+    wd.textContent = l;
+    grid.appendChild(wd);
+  });
+
+  for(let i=0;i<m.startWD;i++){
+    const e = document.createElement("div");
+    e.className = "day empty";
+    grid.appendChild(e);
+  }
+
+  const monthEvents = []; // for list
+
+  for(let d=1; d<=m.days; d++){
+    const dateStr = `${m.year}-${pad(m.idx)}-${pad(d)}`;
+    const cell = document.createElement("div");
+    cell.className = "day";
+
+    const evsToday = EVENTS.filter(ev => eventVisible(ev) && dateInRange(dateStr, ev));
+
+    if(evsToday.length){
+      cell.classList.add("has-event");
+      // background tint from first range-type event (only if it's a multi-day range)
+      const rangeEv = evsToday.find(ev=>ev.end && ev.end!==ev.date);
+      if(rangeEv){
+        cell.classList.add("range-bg");
+        cell.dataset.rangeDisc = rangeEv.disc;
+        cell.style.background = `color-mix(in srgb, ${DISC[rangeEv.disc].color} 15%, white)`;
+      }
+      const titleParts = evsToday.map(ev=>`${DISC[ev.disc].name}: ${ev.label}${ev.time? " ("+ev.time+")":""}`);
+      cell.title = titleParts.join("\n");
+      cell.dataset.discs = evsToday.map(ev=>ev.disc).join(","); cell.dataset.date=dateStr;
+
+      const dotsWrap = document.createElement("div");
+      dotsWrap.className = "dots";
+      evsToday.forEach(ev=>{
+        const dot = document.createElement("span");
+        dot.className = "evdot";
+        dot.dataset.disc = ev.disc;
+        dot.style.background = DISC[ev.disc].color;
+        dotsWrap.appendChild(dot);
+      });
+
+      const num = document.createElement("span");
+      num.className = "num";
+      num.textContent = d;
+      cell.appendChild(num);
+      cell.appendChild(dotsWrap);
+
+      // register for month list only on the actual start date to avoid duplicate range entries
+      evsToday.forEach(ev=>{
+        if(ev.date === dateStr){
+          monthEvents.push({...ev, day:d});
+        }
+      });
+    } else {
+      const num = document.createElement("span");
+      num.className = "num";
+      num.textContent = d;
+      cell.appendChild(num);
+    }
+
+    grid.appendChild(cell);
+  }
+
+  monthCard.appendChild(grid);
+
+  const list = document.createElement("div");
+  list.className = "month-list";
+  if(monthEvents.length===0){
+    list.innerHTML = `<span class="none">Sem eventos avaliativos da Turma A neste mês.</span>`;
+  } else {
+    monthEvents.sort((a,b)=>a.day-b.day).forEach(ev=>{
+      const row = document.createElement("div");
+      row.className = "ev-row";
+      row.dataset.disc = ev.disc; row.dataset.type = ev.type; row.dataset.date = ev.date; row.dataset.search = (DISC[ev.disc].name+" "+ev.label+" "+(ev.time||"")).toLowerCase();
+      const dateLabel = ev.end && ev.end!==ev.date
+        ? `${pad(ev.day)} a ${pad(new Date(ev.end+"T00:00:00").getDate())}/${pad(m.idx)}`
+        : `${pad(ev.day)}/${pad(m.idx)}`;
+      row.innerHTML = `<span class="chip" style="background:${DISC[ev.disc].color}">${dateLabel}</span>
+        <span class="txt"><b>${DISC[ev.disc].name}</b> — ${ev.label}${ev.time? ` <span class="time">· ${ev.time}</span>`:""}</span>`;
+      list.appendChild(row);
+    });
+  }
+  const emptyMsg = document.createElement("div");
+  emptyMsg.className = "none month-empty-filtered";
+  emptyMsg.style.display = "none";
+  emptyMsg.textContent = "Nenhum evento visível com os filtros atuais.";
+  list.appendChild(emptyMsg);
+
+  monthCard.appendChild(list);
+  monthsEl.appendChild(monthCard);
+});
+
+// ---- filtering ----
+function applyFilters(){
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  document.querySelectorAll(".ev-row[data-disc]").forEach(row=>{
+    const discOK = FILTER[row.dataset.disc];
+    const typeOK = TYPE_QUERY==="all" || row.dataset.type===TYPE_QUERY;
+    const textOK = !TEXT_QUERY || row.dataset.search.includes(TEXT_QUERY);
+    let rangeOK = true;
+    if(RANGE_QUERY!=="all"){
+      const start = new Date(row.dataset.date+"T00:00:00");
+      const diff = (start-today)/86400000;
+      rangeOK = diff>=0 && diff<=Number(RANGE_QUERY);
+    }
+    row.classList.toggle("hidden-row", !(discOK && typeOK && textOK && rangeOK));
+  });
+
+  document.querySelectorAll(".day.has-event").forEach(cell=>{
+    const iso = cell.dataset.date;
+    const visibleToday = EVENTS.filter(ev=>{
+      if(!dateInRange(iso,ev)) return false;
+      if(!FILTER[ev.disc]) return false;
+      if(TYPE_QUERY!=="all" && ev.type!==TYPE_QUERY) return false;
+      const hay=(DISC[ev.disc].name+" "+ev.label+" "+(ev.time||"")).toLowerCase();
+      if(TEXT_QUERY && !hay.includes(TEXT_QUERY)) return false;
+      if(RANGE_QUERY!=="all"){
+        const start=new Date(ev.date+"T00:00:00");
+        const diff=(start-today)/86400000;
+        if(diff<0 || diff>Number(RANGE_QUERY)) return false;
+      }
+      return true;
+    });
+    cell.querySelectorAll(".evdot").forEach(dot=>{
+      const matching = visibleToday.some(ev=>ev.disc===dot.dataset.disc);
+      dot.style.display = matching ? "" : "none";
+    });
+    cell.classList.toggle("filtered-out", visibleToday.length===0);
+  });
+
+  document.querySelectorAll(".month-list").forEach(list=>{
+    const rows=[...list.querySelectorAll(".ev-row")];
+    const emptyMsg=list.querySelector(".month-empty-filtered");
+    if(emptyMsg) emptyMsg.style.display = rows.length && rows.every(r=>r.classList.contains("hidden-row")) ? "" : "none";
+  });
+
+  const visibleRows=[...document.querySelectorAll(".ev-row[data-disc]:not(.hidden-row)")];
+  document.getElementById("eventCount").textContent = `${visibleRows.length} evento${visibleRows.length===1?"":"s"} visível${visibleRows.length===1?"":"is"}`;
+  computeNext();
+}
+
+// ---- próxima avaliação ----
+function computeNext(){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const visibleEvents = EVENTS
+    .filter(ev => FILTER[ev.disc])
+    .map(ev => {
+      const start = new Date(ev.date+"T00:00:00");
+      const end = new Date((ev.end||ev.date)+"T23:59:59");
+      return {...ev, _start:start, _end:end};
+    })
+    .filter(ev => ev._end >= today)
+    .sort((a,b) => a._start - b._start);
+
+  const card = document.getElementById("nextCard");
+
+  if(!visibleEvents.length){
+    card.innerHTML = `<div class="info"><b>Sem eventos futuros cadastrados 🎉</b></div>`;
+    return;
+  }
+
+  const best = visibleEvents[0];
+  const ongoing = best._start <= today && today <= best._end;
+  const diffDays = Math.ceil((best._start - today) / 86400000);
+
+  let bigText, smallText;
+  if(ongoing){
+    bigText = "HOJE";
+    smallText = "EM ANDAMENTO";
+  } else if(diffDays === 1){
+    bigText = "1";
+    smallText = "DIA FALTANDO";
+  } else {
+    bigText = diffDays;
+    smallText = "DIAS FALTANDO";
+  }
+
+  const endLabel = best.end && best.end!==best.date
+    ? " a "+best.end.split("-").reverse().join("/")
+    : "";
+
+  card.innerHTML = `
+    <div class="big">${bigText}<span>${smallText}</span></div>
+    <div class="info">
+      <b>${DISC[best.disc].name} — ${best.label}</b>
+      <small>${best.date.split("-").reverse().join("/")}${endLabel}${best.time? " · "+best.time : ""}</small>
+    </div>`;
+}
+computeNext();
+
+
+// ---- busca, tipo, período e tema ----
+document.getElementById("searchInput").addEventListener("input", e=>{
+  TEXT_QUERY=e.target.value.trim().toLowerCase();
+  applyFilters();
+});
+document.getElementById("typeFilter").addEventListener("change", e=>{
+  TYPE_QUERY=e.target.value;
+  applyFilters();
+});
+document.querySelectorAll(".quick-filter").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".quick-filter").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    RANGE_QUERY=btn.dataset.range;
+    applyFilters();
+  });
+});
+document.getElementById("themeBtn").addEventListener("click",()=>{
+  document.body.classList.toggle("dark");
+  const dark=document.body.classList.contains("dark");
+  document.getElementById("themeBtn").textContent=dark?"☀️ Modo claro":"🌙 Modo escuro";
+  localStorage.setItem("calendar-theme", dark?"dark":"light");
+});
+if(localStorage.getItem("calendar-theme")==="dark"){
+  document.body.classList.add("dark");
+  document.getElementById("themeBtn").textContent="☀️ Modo claro";
+}
+applyFilters();
+
+// ---- exportar .ics ----
+function pad2(n){return n<10?"0"+n:""+n;}
+function toICSDateStr(dateStr){ return dateStr.replaceAll("-",""); }
+function addDaysStr(dateStr, n){
+  const d = new Date(dateStr+"T00:00:00");
+  d.setDate(d.getDate()+n);
+  return `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}`;
+}
+function nowStamp(){
+  const d = new Date();
+  return `${d.getUTCFullYear()}${pad2(d.getUTCMonth()+1)}${pad2(d.getUTCDate())}T${pad2(d.getUTCHours())}${pad2(d.getUTCMinutes())}${pad2(d.getUTCSeconds())}Z`;
+}
+// extrai horário(s) tipo "10h", "10h30", "13h15–17h15" de um texto livre
+function parseTimeRange(timeStr){
+  if(!timeStr) return null;
+  const re = /(\d{1,2})h(\d{2})?/g;
+  const found = [];
+  let m;
+  while((m = re.exec(timeStr)) !== null){
+    found.push({h: parseInt(m[1],10), min: m[2]? parseInt(m[2],10) : 0});
+  }
+  if(found.length === 0) return null;
+  return {start: found[0], end: found[1] || null};
+}
+document.getElementById("icsBtn").addEventListener("click", ()=>{
+  const visible = EVENTS.filter(ev => eventVisible(ev));
+  if(visible.length===0){ alert("Nenhuma disciplina selecionada — ative pelo menos uma na legenda."); return; }
+  let ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Calendario Turma A//PT-BR\r\nCALSCALE:GREGORIAN\r\n";
+  visible.forEach((ev,i)=>{
+    const isRange = ev.end && ev.end !== ev.date;
+    const timeInfo = isRange ? null : parseTimeRange(ev.time); // datas com intervalo de dias ficam "dia inteiro"
+    const dtStart = toICSDateStr(ev.date);
+
+    ics += "BEGIN:VEVENT\r\n";
+    ics += `UID:turmaA-${ev.disc}-${dtStart}-${i}@calendario-turmaa\r\n`;
+    ics += `DTSTAMP:${nowStamp()}\r\n`;
+
+    if(timeInfo){
+      // evento com horário exato encontrado no texto
+      let endH, endM;
+      if(timeInfo.end){ endH = timeInfo.end.h; endM = timeInfo.end.min; }
+      else { endH = timeInfo.start.h + 1; endM = timeInfo.start.min; if(endH>=24){endH=23;endM=59;} } // sem hora final -> assume 1h de duração
+      const startStamp = `${dtStart}T${pad2(timeInfo.start.h)}${pad2(timeInfo.start.min)}00`;
+      const endStamp = `${dtStart}T${pad2(endH)}${pad2(endM)}00`;
+      ics += `DTSTART;TZID=America/Sao_Paulo:${startStamp}\r\n`;
+      ics += `DTEND;TZID=America/Sao_Paulo:${endStamp}\r\n`;
+    } else {
+      // sem horário definido no texto (ou evento de vários dias) -> dia inteiro
+      const dtEnd = addDaysStr(ev.end || ev.date, 1); // exclusivo
+      ics += `DTSTART;VALUE=DATE:${dtStart}\r\n`;
+      ics += `DTEND;VALUE=DATE:${dtEnd}\r\n`;
+    }
+
+    ics += `SUMMARY:[${ev.disc}] ${ev.label}\r\n`;
+    ics += `DESCRIPTION:${DISC[ev.disc].name} — ${ev.label}${ev.time? " ("+ev.time+")":""}\r\n`;
+    // lembretes: 5 dias antes e 1 dia antes
+    ics += "BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:Lembrete — faltam 5 dias\r\nTRIGGER:-P5D\r\nEND:VALARM\r\n";
+    ics += "BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:Lembrete — falta 1 dia\r\nTRIGGER:-P1D\r\nEND:VALARM\r\n";
+    ics += "END:VEVENT\r\n";
+  });
+  ics += "END:VCALENDAR\r\n";
+  const blob = new Blob([ics], {type:"text/calendar;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "calendario_turma_a.ics";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+// ---- exportar por matéria: um calendário separado por disciplina ----
+// No iPhone/Calendário Apple, a cor é definida por calendário, não por evento.
+// Por isso, esta opção baixa um arquivo .ics para cada matéria.
+function buildICSForEvents(eventList, calendarName, calendarColor){
+  let ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Calendario Turma A//PT-BR\r\nCALSCALE:GREGORIAN\r\n";
+  ics += `X-WR-CALNAME:${calendarName}\r\n`;
+  ics += "X-WR-TIMEZONE:America/Sao_Paulo\r\n";
+  ics += `X-APPLE-CALENDAR-COLOR:${calendarColor}\r\n`;
+
+  eventList.forEach((ev,i)=>{
+    const isRange = ev.end && ev.end !== ev.date;
+    const timeInfo = isRange ? null : parseTimeRange(ev.time);
+    const dtStart = toICSDateStr(ev.date);
+
+    ics += "BEGIN:VEVENT\r\n";
+    ics += `UID:turmaA-${ev.disc}-${dtStart}-${i}@calendario-turmaa\r\n`;
+    ics += `DTSTAMP:${nowStamp()}\r\n`;
+
+    if(timeInfo){
+      let endH, endM;
+      if(timeInfo.end){ endH = timeInfo.end.h; endM = timeInfo.end.min; }
+      else { endH = timeInfo.start.h + 1; endM = timeInfo.start.min; if(endH>=24){endH=23;endM=59;} }
+      const startStamp = `${dtStart}T${pad2(timeInfo.start.h)}${pad2(timeInfo.start.min)}00`;
+      const endStamp = `${dtStart}T${pad2(endH)}${pad2(endM)}00`;
+      ics += `DTSTART;TZID=America/Sao_Paulo:${startStamp}\r\n`;
+      ics += `DTEND;TZID=America/Sao_Paulo:${endStamp}\r\n`;
+    } else {
+      const dtEnd = addDaysStr(ev.end || ev.date, 1);
+      ics += `DTSTART;VALUE=DATE:${dtStart}\r\n`;
+      ics += `DTEND;VALUE=DATE:${dtEnd}\r\n`;
+    }
+
+    ics += `SUMMARY:${ev.label}\r\n`;
+    ics += `DESCRIPTION:${DISC[ev.disc].name} — ${ev.label}${ev.time? " ("+ev.time+")":""}\r\n`;
+    ics += "BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:Lembrete — faltam 5 dias\r\nTRIGGER:-P5D\r\nEND:VALARM\r\n";
+    ics += "BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:Lembrete — falta 1 dia\r\nTRIGGER:-P1D\r\nEND:VALARM\r\n";
+    ics += "END:VEVENT\r\n";
+  });
+
+  ics += "END:VCALENDAR\r\n";
+  return ics;
+}
+
+function safeFileName(name){
+  return name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9]+/g,"_").replace(/^_|_$/g,"");
+}
+
+document.getElementById("icsByDiscBtn").addEventListener("click", async ()=>{
+  const selected = Object.keys(DISC).filter(k => FILTER[k] && EVENTS.some(ev=>ev.disc===k && eventVisible(ev)));
+  if(selected.length===0){
+    alert("Nenhuma disciplina selecionada — ative pelo menos uma na legenda.");
+    return;
+  }
+
+  const ok = confirm(
+    "Serão baixados arquivos separados, um para cada matéria.\\n\\n" +
+    "No iPhone, crie um calendário para cada matéria e importe o arquivo correspondente. " +
+    "Assim cada matéria poderá ter uma cor própria.\\n\\nContinuar?"
+  );
+  if(!ok) return;
+
+  for(const discKey of selected){
+    const list = EVENTS.filter(ev => ev.disc === discKey && eventVisible(ev));
+    if(!list.length) continue;
+    const text = buildICSForEvents(list, DISC[discKey].name, DISC[discKey].hex);
+    const blob = new Blob([text], {type:"text/calendar;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = safeFileName(DISC[discKey].name) + ".ics";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    await new Promise(r => setTimeout(r, 350));
+  }
+});
+
+</script>
+</body>
+</html>
