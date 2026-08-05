@@ -751,7 +751,7 @@ h1{margin:10px 0 7px;font-size:35px;line-height:1.04;letter-spacing:-.025em}
 }
 
 
-/* ===== V16: sincronização global pela API do Apps Script ===== */
+/* ===== V17: reconexão persistente pela API do Apps Script ===== */
 .setting-api,.setting-add-event{grid-column:1/-1}
 .setting-api{
   border:2px solid color-mix(in srgb,var(--accent) 38%,var(--line));
@@ -853,6 +853,7 @@ const DISC_STYLE_KEY="medicinaUFMG_discStyles_v1";
 const CHART_STYLE_KEY="medicinaUFMG_chartStyles_v1";
 const EVENT_EDIT_KEY="medicinaUFMG_eventEdits_v1";
 const API_SECRET_STORAGE_KEY="medicinaUFMG_apiSecret_v1";
+const API_LAST_SUCCESS_KEY="medicinaUFMG_apiLastSuccess_v1";
 
 const DEFAULT_CHART_STYLES={
   completed:"#10b981",
@@ -961,9 +962,17 @@ function apiStatusLabel(){
     return `<span class="api-dot loading"></span><span><b>Conectando…</b></span>`;
   }
   if(S.api.status==="error"){
-    return `<span class="api-dot error"></span><span><b>Falha na conexão</b> · ${S.api.message||"verifique a chave"}</span>`;
+    const saved=getApiSecret()?" · a chave continua salva neste aparelho":"";
+    return `<span class="api-dot error"></span><span><b>Falha temporária na conexão</b> · ${S.api.message||"tente reconectar"}${saved}</span>`;
+  }
+  if(getApiSecret()){
+    return `<span class="api-dot loading"></span><span><b>Chave salva</b> · aguardando reconexão automática</span>`;
   }
   return `<span class="api-dot"></span><span><b>Não conectado</b> · informe a chave secreta abaixo</span>`;
+}
+
+function wait(ms){
+  return new Promise(resolve=>setTimeout(resolve,ms));
 }
 
 async function apiRequest(action,payload={}){
@@ -973,24 +982,44 @@ async function apiRequest(action,payload={}){
   const endpoint=S.data?.meta?.apiUrl;
   if(!endpoint)throw new Error("Endereço da API não configurado.");
 
-  const response=await fetch(endpoint,{
-    method:"POST",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({action,secret,...payload}),
-    cache:"no-store",
-    redirect:"follow"
-  });
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),18000);
 
-  const text=await response.text();
-  let data;
   try{
-    data=JSON.parse(text);
-  }catch(_){
-    throw new Error("A API respondeu em formato inesperado.");
-  }
+    const response=await fetch(endpoint,{
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({action,secret,...payload}),
+      cache:"no-store",
+      redirect:"follow",
+      signal:controller.signal
+    });
 
-  if(!data.ok)throw new Error(data.error||"A operação não foi concluída.");
-  return data;
+    if(!response.ok){
+      throw new Error(`A API respondeu com erro ${response.status}.`);
+    }
+
+    const text=await response.text();
+    let data;
+    try{
+      data=JSON.parse(text);
+    }catch(_){
+      throw new Error("A API respondeu em formato inesperado.");
+    }
+
+    if(!data.ok)throw new Error(data.error||"A operação não foi concluída.");
+    return data;
+  }catch(error){
+    if(error?.name==="AbortError"){
+      throw new Error("A conexão demorou mais que o esperado.");
+    }
+    if(error instanceof TypeError){
+      throw new Error("Não foi possível alcançar a API agora.");
+    }
+    throw error;
+  }finally{
+    clearTimeout(timeout);
+  }
 }
 
 function applyGlobalConfig(config={}){
@@ -1040,43 +1069,59 @@ function collectGlobalConfigItems(){
 async function bootstrapGlobal(silent=false){
   if(!getApiSecret()){
     S.api={status:"disconnected",message:"Chave ainda não configurada.",updatedAt:null};
-    if(!silent)render();
-    return false;
-  }
-
-  S.api.status="loading";
-  if(!silent)render();
-
-  try{
-    const data=await apiRequest("bootstrap");
-    applyGlobalConfig(data.config||{});
-    S.data.events=prepareEvents(data.events||[],false);
-    S.sync={
-      status:"ok",
-      message:"Sincronização global ativa",
-      updatedAt:new Date(),
-      remoteCount:S.data.events.length
-    };
-    S.api={
-      status:"ok",
-      message:"Sincronização global ativa",
-      updatedAt:new Date()
-    };
     render();
-    if(!silent)toast("Dados sincronizados em todos os dispositivos.");
-    return true;
-  }catch(error){
-    S.api={
-      status:"error",
-      message:error.message||"Não foi possível conectar.",
-      updatedAt:null
-    };
-    if(!silent){
-      render();
-      toast(S.api.message);
-    }
     return false;
   }
+
+  S.api={
+    status:"loading",
+    message:"Reconectando automaticamente…",
+    updatedAt:S.api.updatedAt||null
+  };
+  render();
+
+  let lastError=null;
+
+  for(let attempt=1;attempt<=3;attempt++){
+    try{
+      const data=await apiRequest("bootstrap");
+      applyGlobalConfig(data.config||{});
+      S.data.events=prepareEvents(data.events||[],false);
+      const now=new Date();
+
+      S.sync={
+        status:"ok",
+        message:"Sincronização global ativa",
+        updatedAt:now,
+        remoteCount:S.data.events.length
+      };
+      S.api={
+        status:"ok",
+        message:"Sincronização global ativa",
+        updatedAt:now
+      };
+      localStorage.setItem(API_LAST_SUCCESS_KEY,now.toISOString());
+      render();
+
+      if(!silent)toast("Dados sincronizados em todos os dispositivos.");
+      return true;
+    }catch(error){
+      lastError=error;
+      if(attempt<3)await wait(attempt*900);
+    }
+  }
+
+  S.api={
+    status:"error",
+    message:lastError?.message||"Não foi possível conectar agora.",
+    updatedAt:null
+  };
+  render();
+
+  if(!silent){
+    toast(`${S.api.message} A chave continua salva; toque em “Reconectar”.`);
+  }
+  return false;
 }
 
 async function connectGlobalApi(){
@@ -1097,6 +1142,7 @@ async function connectGlobalApi(){
 
 function forgetGlobalApi(){
   localStorage.removeItem(API_SECRET_STORAGE_KEY);
+  localStorage.removeItem(API_LAST_SUCCESS_KEY);
   S.api={status:"disconnected",message:"Chave removida deste aparelho.",updatedAt:null};
   render();
   toast("Chave removida deste aparelho.");
@@ -1441,7 +1487,7 @@ function shell(){
             </div>
             <div class="eyebrow">${S.data.meta.subtitle}</div>
             <h1>${S.data.meta.title}</h1>
-            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V16 GLOBAL</div>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V17 RECONEXÃO</div>
           </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -1908,13 +1954,13 @@ function settings(){
           <label>
             <span>Chave secreta do Apps Script</span>
             <input id="apiSecretInput" class="ctrl" type="password"
-              placeholder="${getApiSecret()?"Chave já salva neste aparelho":"Cole sua chave secreta"}"
+              placeholder="${getApiSecret()?"Chave já salva — não precisa digitar de novo":"Cole sua chave secreta"}"
               autocomplete="off">
           </label>
-          <button id="connectApi" class="sheet-btn primary" type="button">Conectar e sincronizar</button>
+          <button id="connectApi" class="sheet-btn primary" type="button">${getApiSecret()?"Reconectar agora":"Conectar e sincronizar"}</button>
           <button id="forgetApi" class="sheet-btn" type="button">Esquecer chave</button>
         </div>
-        <div class="sheet-note">Depois de conectar, as alterações globais serão gravadas na planilha e aparecerão no Mac, iPhone, iPad e demais aparelhos.</div>
+        <div class="sheet-note">A chave permanece salva neste navegador. Depois de atualizar a página, o site tenta se reconectar automaticamente até três vezes.</div>
       </div>
       <div class="setting setting-disciplines">
         <b>🎨 Cores e emojis das disciplinas — PERSONALIZAÇÃO ATIVA</b>
@@ -2190,7 +2236,7 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=16",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=17",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     applySavedDisciplineStyles();
