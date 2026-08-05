@@ -17,6 +17,10 @@
   --line:#dedbd3;--soft:#ece9e2;--accent:#111827;--accent-ink:#ffffff;
   --good:#059669;--warn:#d97706;--danger:#dc2626;--shadow:0 12px 34px rgba(15,23,42,.09);
   --radius:20px;
+  --chart-completed:#10b981;
+  --chart-pending:#f59e0b;
+  --progress-start:#7c3aed;
+  --progress-end:#dc2626;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -36,7 +40,7 @@ button,input,select{font:inherit}
 button{color:inherit}
 .boot{padding:52px;text-align:center;color:var(--muted)}
 .shell{max-width:1540px;margin:auto;padding:16px}
-.sticky{position:sticky;top:0;z-index:100;padding-bottom:10px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(15px)}
+.sticky{position:static;z-index:auto;padding-bottom:10px;background:transparent;backdrop-filter:none}
 .hero{
   position:relative;overflow:hidden;display:grid;grid-template-columns:1.25fr .75fr;gap:18px;
   padding:25px 29px;background:var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)
@@ -60,7 +64,7 @@ h1{margin:10px 0 7px;font-size:35px;line-height:1.04;letter-spacing:-.025em}
 .card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
 .card{padding:16px}.metric{font-size:30px;font-weight:950}.label{color:var(--muted);font-size:13px}
 .progress{padding:16px;margin-bottom:16px}.progress-head{display:flex;justify-content:space-between;margin-bottom:8px}
-.track{height:10px;background:var(--soft);border-radius:999px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#7c3aed,#059669,#ea580c,#dc2626)}
+.track{height:10px;background:var(--soft);border-radius:999px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,var(--progress-start),var(--progress-end))}
 .legend{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
 .legend button{display:flex;gap:8px;align-items:center;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:8px 11px;font-weight:760;cursor:pointer}
 .legend button.off{opacity:.34}.dot{width:10px;height:10px;border-radius:50%}
@@ -107,7 +111,7 @@ h1{margin:10px 0 7px;font-size:35px;line-height:1.04;letter-spacing:-.025em}
 .chart-row{display:grid;grid-template-columns:130px 1fr 72px;gap:10px;align-items:center}
 .chart-name{font-weight:760;font-size:13px}
 .stacked{height:18px;background:var(--soft);border-radius:999px;overflow:hidden;display:flex}
-.seg-past{background:#10b981;height:100%}.seg-future{background:#f59e0b;height:100%}
+.seg-past{background:var(--chart-completed);height:100%}.seg-future{background:var(--chart-pending);height:100%}
 .chart-values{text-align:right;font:750 11px ui-monospace;color:var(--muted)}
 .discipline-chart{display:grid;gap:11px}
 .discipline-chart .chart-row{grid-template-columns:150px 1fr 72px}
@@ -693,6 +697,59 @@ h1{margin:10px 0 7px;font-size:35px;line-height:1.04;letter-spacing:-.025em}
   .disc-emoji-input{font-size:18px}
 }
 
+
+/* ===== V15: cabeçalho solto, gráficos e editor de eventos ===== */
+.setting-chart-colors,.setting-event-editor{grid-column:1/-1}
+.chart-style-editor{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(220px,1fr));
+  gap:10px;
+  margin-top:14px;
+}
+.chart-color-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:11px 12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--panel);
+}
+.chart-color-row b,.chart-color-row small{display:block}
+.chart-color-row small{color:var(--muted);font-size:10px;margin-top:3px}
+.chart-color-row input[type="color"]{
+  width:62px;height:40px;border:1px solid var(--line);border-radius:9px;
+  padding:2px;background:var(--panel-2);cursor:pointer
+}
+.event-editor{margin-top:14px}
+.event-editor label{display:grid;gap:6px;color:var(--muted);font-size:11px;font-weight:800}
+.event-select{width:100%;min-height:45px}
+.event-discipline{
+  margin:10px 0;
+  padding:10px 12px;
+  border-left:5px solid var(--accent);
+  background:var(--panel);
+  border-radius:10px;
+  font-weight:850;
+}
+.event-edit-grid{
+  display:grid;
+  grid-template-columns:160px 160px minmax(280px,1fr) 190px;
+  gap:10px;
+}
+.event-title-field{min-width:0}
+.event-edit-grid input{width:100%;min-width:0}
+@media(max-width:1050px){
+  .event-edit-grid{grid-template-columns:1fr 1fr}
+  .event-title-field{grid-column:1/-1}
+}
+@media(max-width:700px){
+  .chart-style-editor{grid-template-columns:1fr}
+  .event-edit-grid{grid-template-columns:1fr}
+  .event-title-field{grid-column:auto}
+}
+
 </style>
 </head>
 <body>
@@ -726,6 +783,96 @@ const S={
 };
 
 const DISC_STYLE_KEY="medicinaUFMG_discStyles_v1";
+
+const CHART_STYLE_KEY="medicinaUFMG_chartStyles_v1";
+const EVENT_EDIT_KEY="medicinaUFMG_eventEdits_v1";
+
+const DEFAULT_CHART_STYLES={
+  completed:"#10b981",
+  pending:"#f59e0b",
+  progressStart:"#7c3aed",
+  progressEnd:"#dc2626"
+};
+
+function loadChartStyles(){
+  try{
+    return {...DEFAULT_CHART_STYLES,...JSON.parse(localStorage.getItem(CHART_STYLE_KEY)||"{}")};
+  }catch(_){
+    return {...DEFAULT_CHART_STYLES};
+  }
+}
+
+function applyChartStyles(){
+  const styles=loadChartStyles();
+  const root=document.documentElement.style;
+  root.setProperty("--chart-completed",styles.completed);
+  root.setProperty("--chart-pending",styles.pending);
+  root.setProperty("--progress-start",styles.progressStart);
+  root.setProperty("--progress-end",styles.progressEnd);
+}
+
+function saveChartStyle(name,value){
+  const styles=loadChartStyles();
+  styles[name]=value;
+  localStorage.setItem(CHART_STYLE_KEY,JSON.stringify(styles));
+  applyChartStyles();
+}
+
+function resetChartStyles(){
+  localStorage.removeItem(CHART_STYLE_KEY);
+  applyChartStyles();
+}
+
+function loadEventEdits(){
+  try{
+    return JSON.parse(localStorage.getItem(EVENT_EDIT_KEY)||"{}");
+  }catch(_){
+    return {};
+  }
+}
+
+function saveEventEdits(edits){
+  localStorage.setItem(EVENT_EDIT_KEY,JSON.stringify(edits));
+}
+
+function makeEventSourceKey(event,index){
+  return event._sourceKey||[
+    event.disc||"",
+    event.date||"",
+    event.label||"",
+    event.time||"",
+    index
+  ].join("|");
+}
+
+function prepareEvents(events){
+  const edits=loadEventEdits();
+  return events.map((event,index)=>{
+    const item={...event};
+    item._sourceKey=makeEventSourceKey(item,index);
+    item._source={
+      date:item.date,
+      end:item.end||"",
+      label:item.label,
+      time:item.time||""
+    };
+    const edit=edits[item._sourceKey];
+    if(edit){
+      item.date=edit.date||item.date;
+      item.end=edit.end||undefined;
+      item.label=edit.label||item.label;
+      item.time=edit.time||undefined;
+    }
+    item.type=classify(item);
+    return item;
+  }).sort((a,b)=>dateKey(a.date)-dateKey(b.date)||a.disc.localeCompare(b.disc));
+}
+
+function resetAllLocalEventEdits(){
+  localStorage.removeItem(EVENT_EDIT_KEY);
+  location.reload();
+}
+
 
 function loadDisciplineStyles(){
   try{
@@ -883,13 +1030,13 @@ function eventsFromCsv(text){
     throw new Error("As colunas Data, Disciplina e Evento são obrigatórias.");
   }
   const result=[];
-  for(const row of rows.slice(1)){
+  for(const [rowIndex,row] of rows.slice(1).entries()){
     const date=toIsoDate(row[ix.date]);
     const code=(row[ix.disc]||"").trim().toUpperCase();
     const label=(row[ix.label]||"").trim();
     if(!date&&!code&&!label)continue;
     if(!date||!label||!S.data.disciplines[code])continue;
-    const event={date,disc:code,label};
+    const event={date,disc:code,label,_sourceKey:[code,date,label,row[ix.time]||"",rowIndex].join("|")};
     const finish=ix.end>=0?toIsoDate(row[ix.end]):"";
     if(finish&&dateKey(finish)>=dateKey(date))event.end=finish;
     const time=ix.time>=0?(row[ix.time]||"").trim():"";
@@ -898,7 +1045,7 @@ function eventsFromCsv(text){
     result.push(event);
   }
   if(!result.length)throw new Error("Nenhum evento válido foi encontrado.");
-  return result.sort((a,b)=>dateKey(a.date)-dateKey(b.date)||a.disc.localeCompare(b.disc));
+  return prepareEvents(result);
 }
 function syncTimeLabel(date){
   if(!date)return "";
@@ -956,7 +1103,7 @@ function shell(){
             </div>
             <div class="eyebrow">${S.data.meta.subtitle}</div>
             <h1>${S.data.meta.title}</h1>
-            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V14 DIRETO</div>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V15</div>
           </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -1137,11 +1284,11 @@ function dashboard(){
       <div class="panel chart-panel">
         <h2>Status geral das atividades</h2>
         <div class="status-legend">
-          <span class="status-key"><span class="status-swatch" style="background:#10b981"></span>Concluídas pela data</span>
-          <span class="status-key"><span class="status-swatch" style="background:#f59e0b"></span>Pendentes pela data</span>
+          <span class="status-key"><span class="status-swatch" style="background:var(--chart-completed)"></span>Concluídas pela data</span>
+          <span class="status-key"><span class="status-swatch" style="background:var(--chart-pending)"></span>Pendentes pela data</span>
         </div>
         <div class="donut-wrap">
-          <div class="donut" style="background:conic-gradient(#10b981 0 ${donutAngle}deg,#f59e0b ${donutAngle}deg 360deg)">
+          <div class="donut" style="background:conic-gradient(var(--chart-completed) 0 ${donutAngle}deg,var(--chart-pending) ${donutAngle}deg 360deg)">
             <div class="donut-center"><strong>${summary.pending}</strong><span>pendentes de ${summary.total}</span></div>
           </div>
         </div>
@@ -1150,8 +1297,8 @@ function dashboard(){
       <div class="panel chart-panel">
         <h2>Concluídas e pendentes por tipo de evento</h2>
         <div class="status-legend">
-          <span class="status-key"><span class="status-swatch" style="background:#10b981"></span>Concluídas</span>
-          <span class="status-key"><span class="status-swatch" style="background:#f59e0b"></span>Pendentes</span>
+          <span class="status-key"><span class="status-swatch" style="background:var(--chart-completed)"></span>Concluídas</span>
+          <span class="status-key"><span class="status-swatch" style="background:var(--chart-pending)"></span>Pendentes</span>
           <span class="status-key">Números: concluídas / pendentes</span>
         </div>
         ${statusBars(statusByType(ev),"type")}
@@ -1160,8 +1307,8 @@ function dashboard(){
     <div class="panel" style="margin-bottom:16px">
       <h2>Status por disciplina</h2>
       <div class="status-legend">
-        <span class="status-key"><span class="status-swatch" style="background:#10b981"></span>Concluídas</span>
-        <span class="status-key"><span class="status-swatch" style="background:#f59e0b"></span>Pendentes</span>
+        <span class="status-key"><span class="status-swatch" style="background:var(--chart-completed)"></span>Concluídas</span>
+        <span class="status-key"><span class="status-swatch" style="background:var(--chart-pending)"></span>Pendentes</span>
       </div>
       ${statusBars(statusByDiscipline(ev),"disc")}
     </div>
@@ -1267,6 +1414,112 @@ function favorites(){
   $("#favorites").innerHTML=`<div class="panel"><h2>Favoritos</h2>${rows(S.data.events.filter(e=>S.favorites.has(id(e))).sort((a,b)=>dateKey(a.date)-dateKey(b.date)))}</div>`;
 }
 
+
+function chartStyleEditor(){
+  const styles=loadChartStyles();
+  const fields=[
+    ["completed","Atividades concluídas",styles.completed],
+    ["pending","Atividades pendentes",styles.pending],
+    ["progressStart","Início da barra do semestre",styles.progressStart],
+    ["progressEnd","Fim da barra do semestre",styles.progressEnd]
+  ];
+  return fields.map(([key,label,value])=>`
+    <label class="chart-color-row">
+      <span><b>${label}</b><small>${value}</small></span>
+      <input class="chart-color-input" data-chart-color="${key}" type="color" value="${value}">
+    </label>`).join("");
+}
+
+function eventEditorOptions(){
+  return [...S.data.events]
+    .sort((a,b)=>dateKey(a.date)-dateKey(b.date))
+    .map(event=>`
+      <option value="${encodeURIComponent(event._sourceKey)}">
+        ${fmt(event.date)} · ${disc(event.disc).short||disc(event.disc).name} · ${event.label}
+      </option>`).join("");
+}
+
+function selectedEventFromEditor(){
+  const select=$("#eventEditorSelect");
+  if(!select)return null;
+  const key=decodeURIComponent(select.value||"");
+  return S.data.events.find(event=>event._sourceKey===key)||null;
+}
+
+function fillEventEditor(event){
+  if(!event)return;
+  $("#eventEditDate").value=event.date||"";
+  $("#eventEditEnd").value=event.end||"";
+  $("#eventEditTitle").value=event.label||"";
+  $("#eventEditTime").value=event.time||"";
+  const name=$("#eventEditDiscipline");
+  if(name)name.textContent=`${disc(event.disc).icon||""} ${disc(event.disc).name}`;
+}
+
+function renderLocalEventEditor(){
+  const select=$("#eventEditorSelect");
+  if(!select)return;
+  select.innerHTML=eventEditorOptions();
+  if(S.data.events.length){
+    select.value=encodeURIComponent(S.data.events[0]._sourceKey);
+    fillEventEditor(S.data.events[0]);
+  }
+}
+
+function saveLocalEventEdit(){
+  const event=selectedEventFromEditor();
+  if(!event)return;
+  const date=$("#eventEditDate").value;
+  const end=$("#eventEditEnd").value;
+  const label=$("#eventEditTitle").value.trim();
+  const time=$("#eventEditTime").value.trim();
+
+  if(!date||!label){
+    toast("Preencha a data e o título.");
+    return;
+  }
+  if(end&&dateKey(end)<dateKey(date)){
+    toast("A data final não pode ser anterior à data inicial.");
+    return;
+  }
+
+  const edits=loadEventEdits();
+  edits[event._sourceKey]={date,end,label,time};
+  saveEventEdits(edits);
+
+  event.date=date;
+  event.end=end||undefined;
+  event.label=label;
+  event.time=time||undefined;
+  event.type=classify(event);
+
+  render();
+  S.view="settings";
+  setView("settings");
+  toast("Alteração salva neste aparelho.");
+}
+
+function resetSelectedLocalEventEdit(){
+  const event=selectedEventFromEditor();
+  if(!event)return;
+  const edits=loadEventEdits();
+  delete edits[event._sourceKey];
+  saveEventEdits(edits);
+
+  Object.assign(event,{
+    date:event._source.date,
+    end:event._source.end||undefined,
+    label:event._source.label,
+    time:event._source.time||undefined
+  });
+  event.type=classify(event);
+
+  render();
+  S.view="settings";
+  setView("settings");
+  toast("Evento restaurado.");
+}
+
 function disciplineStyleEditor(){
   return Object.entries(S.data.disciplines)
     .filter(([code])=>code!=="GERAL")
@@ -1314,6 +1567,38 @@ function settings(){
         </div>
         <div class="sheet-note">As escolhas ficam salvas neste navegador. Em outro aparelho, você pode personalizar novamente.</div>
       </div>
+      <div class="setting setting-chart-colors">
+        <b>📊 Cores das barras e gráficos</b>
+        <div class="label">Personalize as cores de concluídas, pendentes e da barra de progresso do semestre.</div>
+        <div id="chartStyleEditor" class="chart-style-editor"></div>
+        <div class="actions">
+          <button id="resetChartStyles" class="sheet-btn" type="button">Restaurar cores dos gráficos</button>
+        </div>
+      </div>
+
+      <div class="setting setting-event-editor">
+        <b>✏️ Editar datas e títulos no próprio site</b>
+        <div class="label">Escolha um evento e altere data, título ou horário.</div>
+        <div class="event-editor">
+          <label>
+            <span>Evento</span>
+            <select id="eventEditorSelect" class="ctrl event-select"></select>
+          </label>
+          <div id="eventEditDiscipline" class="event-discipline"></div>
+          <div class="event-edit-grid">
+            <label><span>Data</span><input id="eventEditDate" type="date" class="ctrl"></label>
+            <label><span>Data final</span><input id="eventEditEnd" type="date" class="ctrl"></label>
+            <label class="event-title-field"><span>Título</span><input id="eventEditTitle" type="text" class="ctrl"></label>
+            <label><span>Horário</span><input id="eventEditTime" type="text" class="ctrl" placeholder="Ex.: 14h–15h30"></label>
+          </div>
+          <div class="actions">
+            <button id="saveEventEdit" class="sheet-btn primary" type="button">Salvar alteração neste aparelho</button>
+            <button id="resetEventEdit" class="sheet-btn" type="button">Restaurar este evento</button>
+            <button id="resetAllEventEdits" class="sheet-btn" type="button">Apagar todas as edições locais</button>
+          </div>
+        </div>
+        <div class="sheet-note"><b>Importante:</b> estas alterações ficam somente neste navegador. Para mudar oficialmente em todos os aparelhos, use “Editar no Google Planilhas”.</div>
+      </div>
       <div class="setting"><b>Google Planilhas</b><div class="label">Os eventos são lidos da planilha publicada sempre que o site abre e a cada 5 minutos.</div></div>
       <div class="setting"><b>Funcionamento offline</b><div class="label">Sem internet, o site mantém a última cópia local disponível.</div></div>
       <div class="setting"><label><span><b>Limpar favoritos e marcações</b><div class="label">Remove apenas dados salvos neste navegador.</div></span><button id="reset" class="ctrl btn">Limpar</button></label></div>
@@ -1321,6 +1606,9 @@ function settings(){
   </div>`;
   const editor=$("#disciplineStyleEditor");
   if(editor)editor.innerHTML=disciplineStyleEditor();
+  const chartEditor=$("#chartStyleEditor");
+  if(chartEditor)chartEditor.innerHTML=chartStyleEditor();
+  renderLocalEventEditor();
 }
 
 function render(){
@@ -1374,6 +1662,29 @@ function bind(){
   if($("#resetDiscStyles"))$("#resetDiscStyles").onclick=()=>{
     if(confirm("Restaurar todas as cores e emojis padrão?"))resetDisciplineStyles();
   };
+
+  $$(".chart-color-input").forEach(input=>input.oninput=()=>{
+    saveChartStyle(input.dataset.chartColor,input.value);
+    const small=input.closest(".chart-color-row")?.querySelector("small");
+    if(small)small.textContent=input.value;
+  });
+
+  if($("#resetChartStyles"))$("#resetChartStyles").onclick=()=>{
+    resetChartStyles();
+    settings();
+    bind();
+    toast("Cores dos gráficos restauradas.");
+  };
+
+  if($("#eventEditorSelect"))$("#eventEditorSelect").onchange=()=>{
+    fillEventEditor(selectedEventFromEditor());
+  };
+  if($("#saveEventEdit"))$("#saveEventEdit").onclick=saveLocalEventEdit;
+  if($("#resetEventEdit"))$("#resetEventEdit").onclick=resetSelectedLocalEventEdit;
+  if($("#resetAllEventEdits"))$("#resetAllEventEdits").onclick=()=>{
+    if(confirm("Apagar todas as edições locais de datas e títulos?"))resetAllLocalEventEdits();
+  };
+
 
 
   $$(".nav button").forEach(b=>b.onclick=()=>{S.view=b.dataset.view;setView(S.view)});
@@ -1489,11 +1800,12 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=14",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=15",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     applySavedDisciplineStyles();
-    S.data.events.forEach(e=>e.type=classify(e));
+    applyChartStyles();
+    S.data.events=prepareEvents(S.data.events);
     Object.keys(x.disciplines).forEach(k=>S.active.add(k));
     document.body.innerHTML=shell()+`<div id="toast" class="toast"></div>`;
     if(localStorage.getItem("theme")==="dark")document.body.classList.add("dark");

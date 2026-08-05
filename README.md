@@ -1,30 +1,17 @@
-# V14 — index direto
+# V15 — edição avançada no próprio site
 
-Esta versão elimina o problema de mistura entre `v11.html`, `v12.html` e `v13.html`.
-
-O site completo está dentro de `index.html`.
+Novidades:
+- o cabeçalho não fica mais preso ao topo ao rolar;
+- escolha das cores de concluídas, pendentes e progresso do semestre;
+- editor local de data, data final, título e horário;
+- edições locais persistem neste navegador;
+- alterações oficiais para todos os aparelhos continuam sendo feitas no Google Planilhas.
 
 ## Enviar ao GitHub
-Substitua:
 - index.html
 - eventos.json
 - manifest.webmanifest
 - icon.svg
 
-## Depois do upload
-Abra:
-https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/?build=14
-
-Na aba Configurações deve aparecer:
-🎨 Cores e emojis das disciplinas — PERSONALIZAÇÃO ATIVA
-
-## Limpeza opcional
-Pode apagar do repositório:
-- v10.html
-- v11.html
-- v12.html
-- v13.html
-- app.js
-- styles.css
-- sw.js
-- logo_medicina.svg
+## Abrir
+https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/?build=15
