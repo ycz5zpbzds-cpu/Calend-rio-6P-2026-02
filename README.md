@@ -1,19 +1,17 @@
-# V11 — logos originais e link corrigido
+# V12 — logo única completa
 
-## Corrigido
-- usa exatamente as duas imagens enviadas pelo usuário;
-- preserva a logo completa da Faculdade de Medicina UFMG;
-- preserva a logo vermelha completa, removendo apenas margens pretas vazias;
-- botão de edição aponta para a planilha nativa correta:
-  https://docs.google.com/spreadsheets/d/1udd_YAqhdfZwbifz5PZaqMH8f4iyc1YhpO9nNeme9gk/edit
-- o link é um elemento `<a>`, evitando bloqueio de pop-up do Safari.
+- usa somente a logo horizontal enviada;
+- mantém a imagem completa, sem recorte;
+- preserva a proporção original;
+- posiciona a logo acima do título, alinhada com o conteúdo;
+- mantém funcionando o link para editar a planilha.
 
-## Enviar ao GitHub
+## Envie ao GitHub
 - index.html
-- v11.html
+- v12.html
 - eventos.json
 - manifest.webmanifest
 - icon.svg
 
 ## Teste direto
-https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/v11.html?build=11
+https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/v12.html?build=12
