@@ -2,31 +2,38 @@
   "disciplines": {
     "AP": {
       "name": "Anatomia Patológica",
-      "color": "#7C3AED"
+      "color": "#7C3AED",
+      "icon": "🧬"
     },
     "PED": {
       "name": "Pediatria III",
-      "color": "#059669"
+      "color": "#059669",
+      "icon": "🧒"
     },
     "CLM": {
       "name": "Clínica Médica III",
-      "color": "#EA580C"
+      "color": "#EA580C",
+      "icon": "🩺"
     },
     "CIR": {
       "name": "Cirurgia II",
-      "color": "#DC2626"
+      "color": "#DC2626",
+      "icon": "🔪"
     },
     "PC2": {
       "name": "Patologia Clínica 2",
-      "color": "#2563EB"
+      "color": "#2563EB",
+      "icon": "🧪"
     },
     "GOB": {
       "name": "Ginecologia Básica",
-      "color": "#DB2777"
+      "color": "#DB2777",
+      "icon": "🌸"
     },
     "GERAL": {
       "name": "Semana de provas (geral)",
-      "color": "#94A3B8"
+      "color": "#94A3B8",
+      "icon": "📅"
     }
   },
   "events": [

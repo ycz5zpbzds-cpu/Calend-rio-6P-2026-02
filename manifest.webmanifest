@@ -1,0 +1,16 @@
+{
+  "name": "Calendário Premium — Turma A",
+  "short_name": "Turma A",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F5F4EF",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
