@@ -1,14 +1,14 @@
 {
   "name": "Calendário Medicina UFMG — 6º Período — 2026/2",
   "short_name": "Medicina UFMG",
-  "start_url": "./?build=22",
+  "start_url": "./?build=24",
   "scope": "./",
   "display": "standalone",
   "background_color": "#F4F2EC",
   "theme_color": "#111827",
   "icons": [
     {
-      "src": "./icon.svg?v=22",
+      "src": "./icon.svg?v=24",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

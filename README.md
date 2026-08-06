@@ -1,16 +1,9 @@
-# V22 — dashboard clicável
+# V24 — Central de arquivos
 
-Novidade:
-- os seis indicadores do dashboard agora são botões;
-- clicar em Eventos, Avaliações, GDs, Ambulatórios, Pendentes ou Concluídas
-  abre uma lista lateral com todos os itens daquele indicador;
-- a lista respeita os filtros de disciplina, busca e tipo que estiverem ativos;
-- funciona no computador e no celular;
-- dentro da lista ainda é possível favoritar e marcar eventos manualmente.
+Nova aba Arquivos com links diretos para cronogramas, Drive completo do 6º período,
+Atividade Integradora e pastas das disciplinas.
 
-Esta versão altera somente o site. Não é necessário mexer no Apps Script.
+Não precisa alterar o Apps Script.
 
-Publicação:
-1. Substitua no GitHub: index.html, eventos.json, manifest.webmanifest e icon.svg.
-2. Abra:
-https://ycz5zpbzds-cpu.github.io/Calend-rio-6P-2026-02/?build=22
+Substitua no GitHub: index.html, eventos.json, manifest.webmanifest e icon.svg.
+Abra com ?build=24.

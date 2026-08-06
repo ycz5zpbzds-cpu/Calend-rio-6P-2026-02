@@ -10,9 +10,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=22">
-  <link id="appFavicon" rel="icon" href="./icon.svg?v=22" type="image/svg+xml">
-  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=22">
+  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=24">
+  <link id="appFavicon" rel="icon" href="./icon.svg?v=24" type="image/svg+xml">
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=24">
   <title>Calendário Medicina UFMG — 6º Período — 2026/2</title>
   <style>
 :root{
@@ -301,7 +301,9 @@ h1{margin:10px 0 7px;font-size:35px;line-height:1.04;letter-spacing:-.025em}
   .nav button[data-view="timeline"]::after{content:"Agenda"}
   .nav button[data-view="disciplines"]::before{content:"▥"}
   .nav button[data-view="disciplines"]::after{content:"Matérias"}
-  .nav button[data-view="favorites"]::before{content:"☆"}
+  .nav button[data-view="resources"]::before{content:"⌁"}
+.nav button[data-view="resources"]::after{content:"Arquivos"}
+.nav button[data-view="favorites"]::before{content:"☆"}
   .nav button[data-view="favorites"]::after{content:"Favoritos"}
   .nav button[data-view="settings"]::before{content:"⚙"}
   .nav button[data-view="settings"]::after{content:"Ajustes"}
@@ -965,6 +967,29 @@ body.dark .sheet-btn.danger{
   .metric-card-action{font-size:10px}
 }
 
+
+/* ===== V23: cronômetro com fonte única e seleção estável ===== */
+.countdown .cd-meta{
+  line-height:1.45;
+}
+
+
+/* ===== V24: Central de arquivos ===== */
+.resources-hero{display:flex;align-items:center;justify-content:space-between;gap:22px;margin-bottom:20px;padding:22px;border:1px solid var(--line);border-radius:22px;background:radial-gradient(circle at top right,color-mix(in srgb,var(--accent) 16%,transparent),transparent 42%),var(--panel)}
+.resources-hero h2{margin:5px 0 8px;font-size:27px}.resources-hero p{margin:0;color:var(--muted);line-height:1.55}
+.resources-total{min-width:150px;padding:15px;border:1px solid var(--line);border-radius:18px;background:var(--panel-2);text-align:center}
+.resources-total strong{display:block;font-size:31px}.resources-total span{font-size:11px;color:var(--muted);font-weight:800}
+.resource-group{margin:0 0 24px}.resource-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.resource-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;min-height:112px;padding:16px;border:1px solid var(--line);border-left:5px solid var(--resource-color);border-radius:17px;background:var(--panel);color:inherit;text-decoration:none;box-shadow:0 7px 20px rgba(15,23,42,.05);transition:.16s ease}
+.resource-card:hover{transform:translateY(-2px);box-shadow:0 15px 30px rgba(15,23,42,.10)}
+.resource-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:14px;background:color-mix(in srgb,var(--resource-color) 14%,var(--panel));font-size:24px}
+.resource-copy b{display:block;font-size:14px;margin-bottom:5px}.resource-copy small{display:block;color:var(--muted);font-size:11px;line-height:1.45}
+.resource-open{align-self:end;color:var(--resource-color);font-size:11px;font-weight:900;white-space:nowrap}
+.resource-note{display:grid;gap:5px;padding:15px 16px;border:1px solid var(--line);border-radius:15px;background:var(--soft)}
+.resource-note span{color:var(--muted);font-size:12px;line-height:1.5}
+@media(max-width:1000px){.resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.resources-hero{align-items:flex-start;padding:17px}.resources-total{min-width:105px}.resource-grid{grid-template-columns:1fr}.resource-card{min-height:105px}}
+
 </style>
 </head>
 <body>
@@ -997,19 +1022,20 @@ const S={
   sync:{status:"loading",message:"Carregando planilha…",updatedAt:null,remoteCount:0},
   api:{status:"loading",message:"Conectando automaticamente…",updatedAt:null,version:"",configRevision:""},
   defaultDisciplineStyles:{},
-  appIcon:{url:"./icon.svg?v=22",updatedAt:"",custom:false}
+  appIcon:{url:"./icon.svg?v=24",updatedAt:"",custom:false}
 };
 
 const DISC_STYLE_KEY="medicinaUFMG_discStyles_v1";
 
 const CHART_STYLE_KEY="medicinaUFMG_chartStyles_v1";
 const EVENT_EDIT_KEY="medicinaUFMG_eventEdits_v1";
-const DEFAULT_APP_ICON="./icon.svg?v=22";
+const DEFAULT_APP_ICON="./icon.svg?v=24";
 let dynamicManifestUrl="";
 let pendingAppIconDataUrl="";
 let styleSaveTimer=null;
 const pendingGlobalStyleItems=new Map();
 const REQUIRED_API_VERSION="20";
+const API_SNAPSHOT_KEY="medicinaUFMG_apiSnapshot_v23";
 
 const DEFAULT_CHART_STYLES={
   completed:"#10b981",
@@ -1199,7 +1225,7 @@ function updateDynamicManifest(iconUrl){
   const manifest={
     name:"Calendário Medicina UFMG — 6º Período — 2026/2",
     short_name:"Medicina UFMG",
-    start_url:"./?build=22",
+    start_url:"./?build=24",
     scope:"./",
     display:"standalone",
     background_color:"#F4F2EC",
@@ -1244,7 +1270,7 @@ function applyAppIcon(siteConfig={}){
       URL.revokeObjectURL(dynamicManifestUrl);
       dynamicManifestUrl="";
     }
-    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=22");
+    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=24");
   }
 
   document.querySelectorAll("[data-app-icon-preview]").forEach(image=>{
@@ -1311,6 +1337,38 @@ function collectGlobalConfigItems(){
   return items;
 }
 
+
+function saveApiSnapshot(data){
+  try{
+    localStorage.setItem(API_SNAPSHOT_KEY,JSON.stringify({
+      savedAt:new Date().toISOString(),
+      events:data.events||[],
+      config:data.config||{},
+      configRevision:String(data.configRevision||""),
+      apiVersion:String(data.apiVersion||"")
+    }));
+  }catch(_){}
+}
+
+function loadApiSnapshot(){
+  try{
+    const snapshot=JSON.parse(localStorage.getItem(API_SNAPSHOT_KEY)||"null");
+    if(!snapshot||!Array.isArray(snapshot.events))return false;
+
+    applyGlobalConfig(snapshot.config||{});
+    S.data.events=prepareEvents(snapshot.events,false);
+    S.sync={
+      status:"ok",
+      message:"Última cópia sincronizada",
+      updatedAt:snapshot.savedAt?new Date(snapshot.savedAt):null,
+      remoteCount:S.data.events.length
+    };
+    return true;
+  }catch(_){
+    return false;
+  }
+}
+
 async function bootstrapGlobal(silent=false){
   S.api={
     status:"loading",
@@ -1327,6 +1385,7 @@ async function bootstrapGlobal(silent=false){
       const apiVersion=assertCurrentApiVersion(data);
       applyGlobalConfig(data.config||{});
       S.data.events=prepareEvents(data.events||[],false);
+      saveApiSnapshot(data);
       const now=new Date();
 
       S.sync={
@@ -1895,12 +1954,25 @@ function saoPauloDateTimeMs(dateString,hour,minute){
 }
 
 function eventStartMs(e){
+  /*
+    Textos como “base 2025 · a confirmar” não são horários oficiais.
+    Eles não podem ativar o cronômetro.
+  */
+  if(isUnconfirmed(e))return null;
+
   const clocks=parseEventClockTimes(e.time);
   if(!clocks.length)return null;
-  return saoPauloDateTimeMs(e.date,clocks[0].hour,clocks[0].minute);
+
+  return saoPauloDateTimeMs(
+    e.date,
+    clocks[0].hour,
+    clocks[0].minute
+  );
 }
 
 function eventExplicitEndMs(e){
+  if(isUnconfirmed(e))return null;
+
   const clocks=parseEventClockTimes(e.time);
   if(clocks.length<2)return null;
 
@@ -1919,22 +1991,49 @@ function eventExplicitEndMs(e){
 function countdownEventIsPast(e){
   if(isPast(e))return true;
 
+  const start=eventStartMs(e);
   const explicitEnd=eventExplicitEndMs(e);
+
   if(explicitEnd!==null&&Date.now()>explicitEnd)return true;
 
+  /*
+    Quando existe somente horário de início, consideramos uma duração
+    padrão de 1 hora apenas para decidir qual é o próximo evento.
+  */
+  if(
+    start!==null&&
+    explicitEnd===null&&
+    Date.now()>start+60*60*1000
+  ){
+    return true;
+  }
+
   return false;
+}
+
+function compareCountdownEvents(a,b){
+  const dateDifference=dateKey(a.date)-dateKey(b.date);
+  if(dateDifference!==0)return dateDifference;
+
+  const aStart=eventStartMs(a);
+  const bStart=eventStartMs(b);
+
+  /*
+    No mesmo dia, um horário confirmado tem prioridade.
+    Um texto sem horário ou “a confirmar” não disputa o cronômetro.
+  */
+  if(aStart!==null&&bStart===null)return -1;
+  if(aStart===null&&bStart!==null)return 1;
+  if(aStart!==null&&bStart!==null&&aStart!==bStart)return aStart-bStart;
+
+  return String(a.id||id(a)).localeCompare(String(b.id||id(b)));
 }
 
 function futureEvents(list=S.data.events){
   return list
     .filter(e=>!countdownEventIsPast(e))
-    .sort((a,b)=>{
-      const aStart=eventStartMs(a);
-      const bStart=eventStartMs(b);
-      const aValue=aStart!==null?aStart:dateKey(a.date);
-      const bValue=bStart!==null?bStart:dateKey(b.date);
-      return aValue-bValue;
-    });
+    .slice()
+    .sort(compareCountdownEvents);
 }
 
 function nextEvent(list=S.data.events){
@@ -2012,6 +2111,28 @@ function countdownText(e,compact=false){
   if(n===1)return {number:"1",unit:"dia faltando",timer:false};
   return {number:String(n),unit:"dias faltando",timer:false};
 }
+
+const RESOURCE_LINKS=[
+  {group:"Acesso rápido",items:[
+    {code:"CRONO",icon:"🗓️",title:"Cronogramas — Turma A 2026/2",description:"Cronogramas e documentos gerais da Turma A.",url:"https://drive.google.com/drive/folders/1Zj7rhbxujpTBjfpVj3GRkyaLMP2goJx_"},
+    {code:"6P",icon:"🎓",title:"Drive completo do 6º período",description:"Pasta principal com todos os materiais do período.",url:"https://drive.google.com/drive/folders/1xcvmwH9EsllLXzf9HqJrzmKen8W0sMYn"},
+    {code:"AI",icon:"🧩",title:"Atividade Integradora",description:"Arquivos da Atividade Integradora do 6º período.",url:"https://drive.google.com/drive/folders/1rRUB1KEmKd9DP14Bn3ZzDWv4QpOUu939"}
+  ]},
+  {group:"Disciplinas",items:[
+    {code:"CLM",icon:"🫀",title:"Clínica Médica III",description:"GDs, aulas, livros, resumos e materiais.",url:"https://drive.google.com/drive/folders/1eq44jRQqfFSV3kN3_iiAF41obSA6oR2Y"},
+    {code:"CIR",icon:"🩺",title:"Cirurgia II",description:"Cronogramas, aulas, GDs e materiais.",url:"https://drive.google.com/drive/folders/1egj1b92XPrX9rbm-rEok7Gus63Fq_U1d"},
+    {code:"PED",icon:"🧸",title:"Pediatria III",description:"Aulas, roteiros, atividades e materiais.",url:"https://drive.google.com/drive/folders/13Q3ck45OoGdLpdCtTBcj-y8rp7T1MPmG"},
+    {code:"GOB",icon:"🌸",title:"Ginecologia Básica",description:"Aulas, resumos e materiais.",url:"https://drive.google.com/drive/folders/1HVLpMIMRGZ_yaP9ENgmOBOW3moymorMT"},
+    {code:"AP",icon:"🔬",title:"Anatomia Patológica II",description:"Módulos, aulas, provas e materiais.",url:"https://drive.google.com/drive/folders/1QtJbA45GdiS-oihSTgjXKQu-ZioOkfSE"},
+    {code:"PC2",icon:"🧪",title:"Patologia Clínica II",description:"Aulas, atividades e materiais.",url:"https://drive.google.com/drive/folders/1OyTbfBn2Xoj3kmaVQCkcaXQCQqyLLkGO"}
+  ]},
+  {group:"Outros materiais",items:[
+    {code:"IMG",icon:"🩻",title:"Imagem II",description:"Materiais de diagnóstico por imagem.",url:"https://drive.google.com/drive/folders/15c34WisU0qAMiZ7tC9Kz5TC9mvVdLW8x"},
+    {code:"BIO",icon:"⚖️",title:"Ética e Bioética",description:"Arquivos e materiais da disciplina.",url:"https://drive.google.com/drive/folders/1kgFsV0BhrPjqygL-Jl1CNmShYZpQ7hRp"},
+    {code:"GUIAS",icon:"📋",title:"Listas e Guias Úteis",description:"PDF geral com listas e guias importantes.",url:"https://drive.google.com/file/d/1DSwmGoZ_JJcXjmZEMplhRfj_rxm12RYU/view"}
+  ]}
+];
+
 function setView(view){
   S.view=view;
   $$(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
@@ -2147,7 +2268,7 @@ function shell(){
             </div>
             <div class="eyebrow">${S.data.meta.subtitle}</div>
             <h1>${S.data.meta.title}</h1>
-            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V22 DASHBOARD CLICÁVEL</div>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V24 CENTRAL DE ARQUIVOS</div>
           </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -2170,12 +2291,12 @@ function shell(){
       <div class="nav">
         ${[
           ["dashboard","Dashboard"],["calendar","Calendário"],["week","Semana"],
-          ["timeline","Agenda"],["disciplines","Disciplinas"],["favorites","Favoritos"],["settings","Configurações"]
+          ["timeline","Agenda"],["disciplines","Disciplinas"],["resources","Arquivos"],["favorites","Favoritos"],["settings","Configurações"]
         ].map(([k,v])=>`<button data-view="${k}" class="${k==="dashboard"?"active":""}">${v}</button>`).join("")}
       </div>
     </div>
     <main>
-      ${["dashboard","calendar","week","timeline","disciplines","favorites","settings"]
+      ${["dashboard","calendar","week","timeline","disciplines","resources","favorites","settings"]
         .map((v,i)=>`<section id="${v}" class="view ${i===0?"active":""}"></section>`).join("")}
     </main>
     <div class="footer">${S.data.meta.version} · calendário acadêmico pessoal</div>
@@ -2202,7 +2323,7 @@ function renderCountdown(){
     <div><div class="cd-num ${c.timer?"timer":""}">${c.number}</div><div class="cd-unit">${c.unit}</div></div>
     <div>
       <div class="cd-title">${disc(e.disc).icon||""} ${disc(e.disc).name} — ${e.label}</div>
-      <div class="cd-meta">${fmt(e.date)}${e.time?" · "+e.time:""}${e.end?" · até "+fmt(e.end):""}</div>
+      <div class="cd-meta">${fmt(e.date)}${e.time?" · "+e.time:""}${e.end?" · até "+fmt(e.end):""}${eventStartMs(e)!==null?" · horário confirmado":""}</div>
     </div>`;
 }
 
@@ -2510,6 +2631,34 @@ function disciplines(){
     </div>`;
   }).join("")}</div>`;
 }
+
+function resources(){
+  const total=RESOURCE_LINKS.reduce((sum,g)=>sum+g.items.length,0);
+  $("#resources").innerHTML=`
+    <div class="resources-hero">
+      <div><span class="eyebrow">CENTRAL DE ARQUIVOS</span><h2>Materiais e cronogramas</h2>
+      <p>Acesso direto aos Drives de cada disciplina e aos documentos gerais do período.</p></div>
+      <div class="resources-total"><strong>${total}</strong><span>atalhos disponíveis</span></div>
+    </div>
+    ${RESOURCE_LINKS.map(group=>`
+      <section class="resource-group">
+        <div class="section-title"><div><h3>${group.group}</h3><span>${group.items.length} ${group.items.length===1?"link":"links"}</span></div></div>
+        <div class="resource-grid">
+          ${group.items.map(item=>{
+            const color=S.data.disciplines[item.code]?.color||"var(--accent)";
+            return `<a class="resource-card" href="${item.url}" target="_blank" rel="noopener noreferrer" style="--resource-color:${color}">
+              <span class="resource-icon">${item.icon}</span>
+              <span class="resource-copy"><b>${item.title}</b><small>${item.description}</small></span>
+              <span class="resource-open">Abrir ↗</span>
+            </a>`;
+          }).join("")}
+        </div>
+      </section>`).join("")}
+    <div class="resource-note"><b>Permissões do Google Drive</b>
+      <span>Os links respeitam as permissões de cada pasta. Entre com a conta que já possui acesso.</span>
+    </div>`;
+}
+
 function favorites(){
   $("#favorites").innerHTML=`<div class="panel"><h2>Favoritos</h2>${rows(S.data.events.filter(e=>S.favorites.has(id(e))).sort((a,b)=>dateKey(a.date)-dateKey(b.date)))}</div>`;
 }
@@ -2759,8 +2908,8 @@ function settings(){
           <button id="addEventGlobal" class="sheet-btn primary" type="button">Adicionar para todos os dispositivos</button>
         </div>
       </div>
-      <div class="setting"><b>⏳ Contagem e cronômetro</b><div class="label">Usa sempre o horário de São Paulo. Acima de 24 horas mostra dias; nas últimas 24 horas, quando existe horário exato, mostra um cronômetro com horas, minutos e segundos.</div></div>
-      <div class="setting"><b>Google Planilhas</b><div class="label">O site lê e grava diretamente na planilha central, sem solicitar chave nos aparelhos.</div></div>
+      <div class="setting"><b>⏳ Contagem e cronômetro</b><div class="label">Usa sempre o horário de São Paulo. O cronômetro fica preso ao próximo evento confirmado e não usa horários marcados como “a confirmar” ou “base 2025”.</div></div>
+      <div class="setting"><b>Google Planilhas</b><div class="label">O site usa somente a API central como fonte. O CSV publicado não interfere mais no próximo evento nem no cronômetro.</div></div>
       <div class="setting"><b>Funcionamento offline</b><div class="label">Sem internet, o site mantém a última cópia local disponível.</div></div>
       <div class="setting"><label><span><b>Limpar favoritos e marcações</b><div class="label">Remove apenas dados salvos neste navegador.</div></span><button id="reset" class="ctrl btn">Limpar</button></label></div>
     </div>
@@ -2780,6 +2929,7 @@ function render(){
   weekView();
   timeline();
   disciplines();
+  resources();
   favorites();
   settings();
   bind();
@@ -2983,7 +3133,7 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=22",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=24",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     S.defaultDisciplineStyles=Object.fromEntries(
@@ -3001,7 +3151,13 @@ document.addEventListener("DOMContentLoaded",async()=>{
     render();
 
     applyAppIcon({});
-    await loadRemoteEvents(true);
+
+    /*
+      O cronômetro usa somente a API como fonte.
+      Enquanto a API responde, mostramos a última cópia da própria API,
+      nunca o CSV publicado, para o evento não ficar alternando.
+    */
+    if(loadApiSnapshot())render();
     await bootstrapGlobal(true);
 
     setInterval(renderCountdown,1000);
