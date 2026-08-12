@@ -15,190 +15,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Integrate MED070 A3
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import json, re
-
-          index_path = Path('index.html')
-          events_path = Path('eventos.json')
-          html = index_path.read_text(encoding='utf-8')
-          data = json.loads(events_path.read_text(encoding='utf-8'))
-
-          med_disc = {
-              'name': 'Conferências de Ética e Bioética',
-              'short': 'Ética/Bioética',
-              'color': '#0F766E',
-              'icon': '⚖️'
-          }
-          data.setdefault('disciplines', {})['MED070'] = med_disc
-          data.setdefault('meta', {})['version'] = '26.0 MED070 A3 integrado'
-
-          med_events = [
-            {
-              'date':'2026-08-12','end':'2026-08-17','disc':'MED070',
-              'label':'Avaliação — Pré-teste (5 pontos)',
-              'time':'Moodle · disponível 12/08–17/08 · prazo final 17/08',
-              'activityType':'Questionário reflexivo','points':'5 pontos','location':'Moodle',
-              'how':'Responder e enviar o questionário reflexivo no Moodle. A pontuação total é atribuída pelo preenchimento dentro do prazo, independentemente das respostas.',
-              'preparation':'Não exige preparação específica de conteúdo; o essencial é preencher e confirmar o envio.',
-              'attention':'Fica aberto de 12/08 a 17/08 e aparece em todos esses dias no calendário. Não será reaberto após o prazo final.'
-            },
-            {
-              'date':'2026-09-02','disc':'MED070',
-              'label':'Avaliação — Reflexão inicial A3: Mídias sociais e ética (20 pontos)',
-              'time':'18h30–19h30 · Teams · A3 apresenta 18h30–19h; acompanhar A4 19h–19h30',
-              'activityType':'Apresentação e discussão síncrona','points':'20 pontos','location':'Microsoft Teams',
-              'how':'Tema da A3: aspectos éticos e bioéticos do emprego de tecnologias de comunicação na relação médico-paciente. A A3 terá até 10 minutos para apresentar, seguida de 20 minutos de discussão. Preferencialmente 1 ou 2 estudantes apresentam, mas todos devem estar preparados para participar, responder perguntas ou substituir colegas. Recomenda-se não utilizar vídeos.',
-              'preparation':'Reunir-se previamente com a A3; estudar questões éticas, políticas públicas atuais e possíveis ações individuais/coletivas; preparar argumentos e respostas; usar referências bibliográficas e adicionais; indicar consenso ou divergências no grupo.',
-              'attention':'É necessário permanecer também para a A4 até 19h30. Mesmo quem não apresentar precisa estar preparado para discutir e responder perguntas.'
-            },
-            {
-              'date':'2026-09-02','end':'2026-09-03','disc':'MED070',
-              'label':'Avaliação — Documento da reflexão A3 (15 pontos)',
-              'time':'Teams · após a apresentação de 02/09 · prazo final 03/09',
-              'activityType':'Entrega de documento','points':'15 pontos','location':'Microsoft Teams',
-              'how':'Compartilhar com a turma o documento da A3 no Teams. O arquivo pode ser a própria apresentação de 02/09 e deve contemplar reflexões/propostas, referências utilizadas e adicionais e registrar consenso ou divergências quando aplicável.',
-              'preparation':'Deixar o material praticamente finalizado antes da apresentação e fazer apenas ajustes finais depois.',
-              'attention':'O período aparece em 02/09 e 03/09. O prazo máximo é um dia após a apresentação.'
-            },
-            {
-              'date':'2026-09-05','disc':'MED070',
-              'label':'Avaliação — Entregar 2 perguntas sobre IA e ética (5 pontos)',
-              'time':'Teams · pasta da Turma A · prazo final 05/09',
-              'activityType':'Atividade em grupo / entrega','points':'5 pontos','location':'Microsoft Teams — pasta da Turma A',
-              'how':'Elaborar e postar 2 perguntas sobre aspectos éticos do tema “Inteligência artificial e ética na saúde”. As perguntas serão avaliadas quanto à pertinência e relevância.',
-              'preparation':'Discutir problemas éticos do uso de IA na saúde e formular perguntas capazes de gerar uma discussão relevante na conferência.',
-              'attention':'O programa informa o prazo final de 05/09, mas não informa uma data inicial específica; por isso o evento fica no dia do prazo final.'
-            },
-            {
-              'date':'2026-09-09','disc':'MED070',
-              'label':'Avaliação — Conferência sobre IA e ética (10 pontos)',
-              'time':'18h30–20h30 · Teams',
-              'activityType':'Conferência síncrona — presença avaliativa','points':'10 pontos','location':'Microsoft Teams',
-              'how':'Conferência sobre inteligência artificial e ética na saúde, com Profa. Cristiane Dias (Departamento de Pediatria/UFMG) e Dra. Gabriella Reis (CI-IA). Os 10 pontos são associados à presença.',
-              'preparation':'A preparação principal está relacionada às duas perguntas sobre IA e ética entregues anteriormente.',
-              'attention':'Garantir presença durante a conferência, pois a pontuação prevista é por presença.'
-            },
-            {
-              'date':'2026-09-23','disc':'MED070',
-              'label':'Avaliação — Seminário presencial Fishbowl A3 (40 pontos)',
-              'time':'a partir de 18h30 · Faculdade de Medicina/UFMG · Sala 166 · término não informado',
-              'activityType':'Seminário presencial / debate Fishbowl','points':'40 pontos','location':'Faculdade de Medicina/UFMG — Sala 166',
-              'how':'Dinâmica Fishbowl com situações éticas sobre mídias sociais e inteligência artificial na saúde. Na 1ª situação A1/A2 debatem e A3/A4 observam; na 2ª, A3/A4 debatem. Na vez da A3/A4 há 10 minutos para discussão inicial e escolha de 4 debatedores (2 da A3 e 2 da A4). Cada fala pode durar até 2 minutos. Participantes do círculo externo podem ocupar a cadeira vazia e entrar no debate. Não é obrigatório que todos falem nem chegar a consenso. Cada debate dura aproximadamente 30–40 minutos.',
-              'preparation':'Preparar argumentação sobre ética e mídias sociais e ética e IA na saúde; treinar identificação de problemas éticos, diferentes perspectivas, justificativa de posições, respostas a argumentos e discussão de condutas.',
-              'attention':'Maior avaliação da disciplina. Critérios: presença, permanência durante todo o seminário, participação, capacidade crítica/reflexiva e interação. O programa não informa previamente os casos nem o horário exato de término.'
-            },
-            {
-              'date':'2026-09-30','end':'2026-10-05','disc':'MED070',
-              'label':'Avaliação — Pós-teste (5 pontos)',
-              'time':'Moodle · disponível 30/09–05/10 · prazo final 05/10',
-              'activityType':'Questionário reflexivo','points':'5 pontos','location':'Moodle',
-              'how':'Responder e enviar o pós-teste no Moodle. A pontuação é atribuída pelo preenchimento dentro do prazo, independentemente das respostas.',
-              'preparation':'Não exige preparação específica; o essencial é responder e confirmar o envio.',
-              'attention':'Fica aberto de 30/09 a 05/10 e aparece em todos esses dias no calendário. Não será reaberto após o prazo final.'
-            }
-          ]
-
-          # Mantém uma única cópia dos eventos MED070 no fallback local.
-          data['events'] = [e for e in data.get('events', []) if e.get('disc') != 'MED070'] + med_events
-          events_path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-
-          # Bloco fixo no app para que a sincronização remota nunca apague os eventos MED070.
-          block = '''/* MED070_A3_START */
-const MED070_FIXED_EVENTS = __EVENTS__;
-function mergeFixedMed070Events(events){
-  const base=(events||[]).filter(e=>e.disc!=="MED070");
-  return [...base,...MED070_FIXED_EVENTS.map(e=>({...e}))];
-}
-function eventExtra(e){
-  if(e.disc!=="MED070")return "";
-  const item=(title,value)=>value?`<div class="med070-detail"><strong>${title}</strong><span>${value}</span></div>`:"";
-  return `<div class="med070-extra">
-    ${item("Tipo",e.activityType)}
-    ${item("Valor",e.points)}
-    ${item("Local",e.location)}
-    ${item("Como será",e.how)}
-    ${item("Como se preparar",e.preparation)}
-    ${item("⚠️ Ponto de atenção",e.attention)}
-  </div>`;
-}
-/* MED070_A3_END */'''.replace('__EVENTS__', json.dumps(med_events, ensure_ascii=False, separators=(',',':')))
-
-          html = re.sub(r'/\* MED070_A3_START \*/.*?/\* MED070_A3_END \*/\n?', '', html, flags=re.S)
-          marker = 'function prepareEvents(events,useLocalEdits=true){'
-          if marker not in html:
-              raise SystemExit('prepareEvents marker not found')
-          html = html.replace(marker, block + '\n\n' + marker, 1)
-          html = html.replace('return events.map((event,index)=>{', 'return mergeFixedMed070Events(events).map((event,index)=>{', 1)
-
-          # Exibe detalhes completos nas fichas dos eventos MED070.
-          row_marker = '<small>${e.time||""}${e.end?" · até "+fmt(e.end):""}</small>'
-          if '${eventExtra(e)}' not in html:
-              if row_marker not in html:
-                  raise SystemExit('row marker not found')
-              html = html.replace(row_marker, row_marker + '\n      ${eventExtra(e)}', 1)
-
-          # Estilo visual próprio, sem poluir as demais matérias.
-          if '/* MED070_DETAIL_STYLE */' not in html:
-              css = '''
-/* MED070_DETAIL_STYLE */
-.med070-extra{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);display:grid;gap:7px}
-.med070-detail{display:grid;gap:2px;font-size:12px;line-height:1.45}
-.med070-detail strong{color:var(--ink);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
-.med070-detail span{color:var(--muted)}
-'''
-              html = html.replace('</style>', css + '\n</style>', 1)
-
-          # Classificação: toda atividade MED070 é avaliativa.
-          html = html.replace(
-              'function eventKind(e){',
-              'function eventKind(e){\n  if(e.disc==="MED070")return "assessment";',
-              1
-          ) if 'if(e.disc==="MED070")return "assessment";' not in html else html
-
-          # Busca também encontra os campos detalhados da MED070.
-          old_h = 'const h=(disc(e.disc).name+" "+e.label+" "+(e.time||"")).toLowerCase();'
-          new_h = 'const h=(disc(e.disc).name+" "+e.label+" "+(e.time||"")+" "+(e.activityType||"")+" "+(e.how||"")+" "+(e.preparation||"")+" "+(e.attention||"")).toLowerCase();'
-          if old_h in html:
-              html = html.replace(old_h, new_h, 1)
-
-          # Exportação ICS do site: inclui os detalhes e usa os lembretes solicitados (5 e 2 dias).
-          html = html.replace('"TRIGGER:-P1D","DESCRIPTION:Falta 1 dia"', '"TRIGGER:-P2D","DESCRIPTION:Faltam 2 dias"')
-          html = html.replace('5 dias antes e 1 dia antes.', '5 dias antes e 2 dias antes.')
-          desc_old = 'disc(e.disc).name+" — "+e.label+(e.time?" ("+e.time+")":"")'
-          desc_new = 'disc(e.disc).name+" — "+e.label+(e.time?" ("+e.time+")":"")+(e.how?"\\n\\nCOMO SERÁ: "+e.how:"")+(e.preparation?"\\n\\nCOMO SE PREPARAR: "+e.preparation:"")+(e.attention?"\\n\\nATENÇÃO: "+e.attention:"")'
-          if desc_old in html:
-              html = html.replace(desc_old, desc_new)
-
-          # Versão/cache para forçar a atualização no GitHub Pages/PWA.
-          html = html.replace('· V25 ESTÁVEL', '· V26 MED070 A3')
-          html = html.replace('25.0 Estabilidade e horário corrigidos', '26.0 MED070 A3 integrado')
-          html = html.replace('v=25', 'v=26')
-          html = html.replace('build=25', 'build=26')
-          html = html.replace('medicinaUFMG_apiSnapshot_v25', 'medicinaUFMG_apiSnapshot_v26')
-          index_path.write_text(html, encoding='utf-8')
-          PY
+      - name: Apply MED070 integration
+        run: python3 .github/scripts/integrate_med070.py
 
       - name: Validate site
-        shell: bash
         run: |
           python3 -m json.tool eventos.json >/dev/null
           python3 - <<'PY'
           from pathlib import Path
           import re
-          html=Path('index.html').read_text(encoding='utf-8')
+          html = Path('index.html').read_text(encoding='utf-8')
           assert 'MED070_FIXED_EVENTS' in html
           assert 'Conferências de Ética e Bioética' in Path('eventos.json').read_text(encoding='utf-8')
-          scripts=re.findall(r'<script>(.*?)</script>',html,re.S)
-          Path('/tmp/calendar.js').write_text('\n'.join(scripts),encoding='utf-8')
+          scripts = re.findall(r'<script>(.*?)</script>', html, re.S)
+          Path('/tmp/calendar.js').write_text('\n'.join(scripts), encoding='utf-8')
           PY
           node --check /tmp/calendar.js
 
       - name: Commit updated site
-        shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
