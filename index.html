@@ -10,9 +10,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=25">
-  <link id="appFavicon" rel="icon" href="./icon.svg?v=25" type="image/svg+xml">
-  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=25">
+  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=26">
+  <link id="appFavicon" rel="icon" href="./icon.svg?v=26" type="image/svg+xml">
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=26">
   <title>Calendário Medicina UFMG — 6º Período — 2026/2</title>
   <style>
 :root{
@@ -990,6 +990,13 @@ body.dark .sheet-btn.danger{
 @media(max-width:1000px){.resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.resources-hero{align-items:flex-start;padding:17px}.resources-total{min-width:105px}.resource-grid{grid-template-columns:1fr}.resource-card{min-height:105px}}
 
+
+/* MED070_DETAIL_STYLE */
+.med070-extra{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);display:grid;gap:7px}
+.med070-detail{display:grid;gap:2px;font-size:12px;line-height:1.45}
+.med070-detail strong{color:var(--ink);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.med070-detail span{color:var(--muted)}
+
 </style>
 </head>
 <body>
@@ -1022,20 +1029,20 @@ const S={
   sync:{status:"loading",message:"Carregando planilha…",updatedAt:null,remoteCount:0},
   api:{status:"loading",message:"Conectando automaticamente…",updatedAt:null,version:"",configRevision:""},
   defaultDisciplineStyles:{},
-  appIcon:{url:"./icon.svg?v=25",updatedAt:"",custom:false}
+  appIcon:{url:"./icon.svg?v=26",updatedAt:"",custom:false}
 };
 
 const DISC_STYLE_KEY="medicinaUFMG_discStyles_v1";
 
 const CHART_STYLE_KEY="medicinaUFMG_chartStyles_v1";
 const EVENT_EDIT_KEY="medicinaUFMG_eventEdits_v1";
-const DEFAULT_APP_ICON="./icon.svg?v=25";
+const DEFAULT_APP_ICON="./icon.svg?v=26";
 let dynamicManifestUrl="";
 let pendingAppIconDataUrl="";
 let styleSaveTimer=null;
 const pendingGlobalStyleItems=new Map();
 const REQUIRED_API_VERSION="20";
-const API_SNAPSHOT_KEY="medicinaUFMG_apiSnapshot_v25";
+const API_SNAPSHOT_KEY="medicinaUFMG_apiSnapshot_v26";
 
 const DEFAULT_CHART_STYLES={
   completed:"#10b981",
@@ -1095,9 +1102,29 @@ function makeEventSourceKey(event,index){
   ].join("|");
 }
 
+/* MED070_A3_START */
+const MED070_FIXED_EVENTS = [{"date":"2026-08-12","end":"2026-08-17","disc":"MED070","label":"Avaliação — Pré-teste (5 pontos)","time":"Moodle · disponível 12/08–17/08 · prazo final 17/08","activityType":"Questionário reflexivo","points":"5 pontos","location":"Moodle","how":"Responder e enviar o questionário reflexivo no Moodle. A pontuação total é atribuída pelo preenchimento dentro do prazo, independentemente das respostas.","preparation":"Não exige preparação específica de conteúdo; o essencial é preencher e confirmar o envio.","attention":"Fica aberto de 12/08 a 17/08 e aparece em todos esses dias no calendário. Não será reaberto após o prazo final."},{"date":"2026-09-02","disc":"MED070","label":"Avaliação — Reflexão inicial A3: Mídias sociais e ética (20 pontos)","time":"18h30–19h30 · Teams · A3 apresenta 18h30–19h; acompanhar A4 19h–19h30","activityType":"Apresentação e discussão síncrona","points":"20 pontos","location":"Microsoft Teams","how":"Tema da A3: aspectos éticos e bioéticos do emprego de tecnologias de comunicação na relação médico-paciente. A A3 terá até 10 minutos para apresentar, seguida de 20 minutos de discussão. Preferencialmente 1 ou 2 estudantes apresentam, mas todos devem estar preparados para participar, responder perguntas ou substituir colegas. Recomenda-se não utilizar vídeos.","preparation":"Reunir-se previamente com a A3; estudar questões éticas, políticas públicas atuais e possíveis ações individuais/coletivas; preparar argumentos e respostas; usar referências bibliográficas e adicionais; indicar consenso ou divergências no grupo.","attention":"É necessário permanecer também para a A4 até 19h30. Mesmo quem não apresentar precisa estar preparado para discutir e responder perguntas."},{"date":"2026-09-02","end":"2026-09-03","disc":"MED070","label":"Avaliação — Documento da reflexão A3 (15 pontos)","time":"Teams · após a apresentação de 02/09 · prazo final 03/09","activityType":"Entrega de documento","points":"15 pontos","location":"Microsoft Teams","how":"Compartilhar com a turma o documento da A3 no Teams. O arquivo pode ser a própria apresentação de 02/09 e deve contemplar reflexões/propostas, referências utilizadas e adicionais e registrar consenso ou divergências quando aplicável.","preparation":"Deixar o material praticamente finalizado antes da apresentação e fazer apenas ajustes finais depois.","attention":"O período aparece em 02/09 e 03/09. O prazo máximo é um dia após a apresentação."},{"date":"2026-09-05","disc":"MED070","label":"Avaliação — Entregar 2 perguntas sobre IA e ética (5 pontos)","time":"Teams · pasta da Turma A · prazo final 05/09","activityType":"Atividade em grupo / entrega","points":"5 pontos","location":"Microsoft Teams — pasta da Turma A","how":"Elaborar e postar 2 perguntas sobre aspectos éticos do tema “Inteligência artificial e ética na saúde”. As perguntas serão avaliadas quanto à pertinência e relevância.","preparation":"Discutir problemas éticos do uso de IA na saúde e formular perguntas capazes de gerar uma discussão relevante na conferência.","attention":"O programa informa o prazo final de 05/09, mas não informa uma data inicial específica; por isso o evento fica no dia do prazo final."},{"date":"2026-09-09","disc":"MED070","label":"Avaliação — Conferência sobre IA e ética (10 pontos)","time":"18h30–20h30 · Teams","activityType":"Conferência síncrona — presença avaliativa","points":"10 pontos","location":"Microsoft Teams","how":"Conferência sobre inteligência artificial e ética na saúde, com Profa. Cristiane Dias (Departamento de Pediatria/UFMG) e Dra. Gabriella Reis (CI-IA). Os 10 pontos são associados à presença.","preparation":"A preparação principal está relacionada às duas perguntas sobre IA e ética entregues anteriormente.","attention":"Garantir presença durante a conferência, pois a pontuação prevista é por presença."},{"date":"2026-09-23","disc":"MED070","label":"Avaliação — Seminário presencial Fishbowl A3 (40 pontos)","time":"a partir de 18h30 · Faculdade de Medicina/UFMG · Sala 166 · término não informado","activityType":"Seminário presencial / debate Fishbowl","points":"40 pontos","location":"Faculdade de Medicina/UFMG — Sala 166","how":"Dinâmica Fishbowl com situações éticas sobre mídias sociais e inteligência artificial na saúde. Na 1ª situação A1/A2 debatem e A3/A4 observam; na 2ª, A3/A4 debatem. Na vez da A3/A4 há 10 minutos para discussão inicial e escolha de 4 debatedores (2 da A3 e 2 da A4). Cada fala pode durar até 2 minutos. Participantes do círculo externo podem ocupar a cadeira vazia e entrar no debate. Não é obrigatório que todos falem nem chegar a consenso. Cada debate dura aproximadamente 30–40 minutos.","preparation":"Preparar argumentação sobre ética e mídias sociais e ética e IA na saúde; treinar identificação de problemas éticos, diferentes perspectivas, justificativa de posições, respostas a argumentos e discussão de condutas.","attention":"Maior avaliação da disciplina. Critérios: presença, permanência durante todo o seminário, participação, capacidade crítica/reflexiva e interação. O programa não informa previamente os casos nem o horário exato de término."},{"date":"2026-09-30","end":"2026-10-05","disc":"MED070","label":"Avaliação — Pós-teste (5 pontos)","time":"Moodle · disponível 30/09–05/10 · prazo final 05/10","activityType":"Questionário reflexivo","points":"5 pontos","location":"Moodle","how":"Responder e enviar o pós-teste no Moodle. A pontuação é atribuída pelo preenchimento dentro do prazo, independentemente das respostas.","preparation":"Não exige preparação específica; o essencial é responder e confirmar o envio.","attention":"Fica aberto de 30/09 a 05/10 e aparece em todos esses dias no calendário. Não será reaberto após o prazo final."}];
+function mergeFixedMed070Events(events){
+  const base=(events||[]).filter(e=>e.disc!=="MED070");
+  return [...base,...MED070_FIXED_EVENTS.map(e=>({...e}))];
+}
+function eventExtra(e){
+  if(e.disc!=="MED070")return "";
+  const item=(title,value)=>value?`<div class="med070-detail"><strong>${title}</strong><span>${value}</span></div>`:"";
+  return `<div class="med070-extra">
+    ${item("Tipo",e.activityType)}
+    ${item("Valor",e.points)}
+    ${item("Local",e.location)}
+    ${item("Como será",e.how)}
+    ${item("Como se preparar",e.preparation)}
+    ${item("⚠️ Ponto de atenção",e.attention)}
+  </div>`;
+}
+/* MED070_A3_END */
+
 function prepareEvents(events,useLocalEdits=true){
   const edits=useLocalEdits?loadEventEdits():{};
-  return events.map((event,index)=>{
+  return mergeFixedMed070Events(events).map((event,index)=>{
     const item={...event};
     item._sourceKey=makeEventSourceKey(item,index);
     item._source={
@@ -1225,7 +1252,7 @@ function updateDynamicManifest(iconUrl){
   const manifest={
     name:"Calendário Medicina UFMG — 6º Período — 2026/2",
     short_name:"Medicina UFMG",
-    start_url:"./?build=25",
+    start_url:"./?build=26",
     scope:"./",
     display:"standalone",
     background_color:"#F4F2EC",
@@ -1270,7 +1297,7 @@ function applyAppIcon(siteConfig={}){
       URL.revokeObjectURL(dynamicManifestUrl);
       dynamicManifestUrl="";
     }
-    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=25");
+    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=26");
   }
 
   document.querySelectorAll("[data-app-icon-preview]").forEach(image=>{
@@ -1855,6 +1882,7 @@ function isUnconfirmed(e){
 }
 
 function eventKind(e){
+  if(e.disc==="MED070")return "assessment";
   const t=(e.label+" "+(e.time||"")).toLowerCase();
   if(/ambulatório|ambulatorial|triagem|consulta/.test(t))return"ambulatory";
   if(/\bgd\b|gd\d|gd\+/.test(t))return"gd";
@@ -1867,7 +1895,7 @@ function classify(e){return isUnconfirmed(e)?"pending":eventKind(e)}
 function visible(e){
   if(!S.active.has(e.disc))return false;
   if(S.type!=="all"&&e.type!==S.type)return false;
-  const h=(disc(e.disc).name+" "+e.label+" "+(e.time||"")).toLowerCase();
+  const h=(disc(e.disc).name+" "+e.label+" "+(e.time||"")+" "+(e.activityType||"")+" "+(e.how||"")+" "+(e.preparation||"")+" "+(e.attention||"")).toLowerCase();
   return !S.query||h.includes(S.query);
 }
 
@@ -2274,7 +2302,7 @@ function shell(){
             </div>
             <div class="eyebrow">${S.data.meta.subtitle}</div>
             <h1>${S.data.meta.title}</h1>
-            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V25 ESTÁVEL</div>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V26 MED070 A3</div>
           </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -2350,6 +2378,7 @@ function row(e){
       <button class="fav" data-fav="${encodeURIComponent(id(e))}" title="Favoritar">${fav?"⭐":"☆"}</button>
       <b>${disc(e.disc).icon||""} ${disc(e.disc).name} — ${e.label}</b>
       <small>${e.time||""}${e.end?" · até "+fmt(e.end):""}</small>
+      ${eventExtra(e)}
     </div>
   </div>`;
 }
@@ -2800,7 +2829,7 @@ function settings(){
   $("#settings").innerHTML=`<div class="panel"><h2>Configurações</h2>
     <div class="settings-grid">
       <div class="setting"><label><span><b>Tema</b><div class="label">Claro/escuro, salvo no aparelho.</div></span><button id="theme2" class="ctrl btn">Alternar</button></label></div>
-      <div class="setting"><b>Lembretes ICS</b><div class="label">5 dias antes e 1 dia antes.</div></div>
+      <div class="setting"><b>Lembretes ICS</b><div class="label">5 dias antes e 2 dias antes.</div></div>
       <div class="setting"><b>Cores no iPhone</b><div class="label">Exporte por matéria e importe cada arquivo em um calendário separado.</div></div>
       <div class="setting"><b>Instalar no iPhone</b><div class="label">Safari → Compartilhar → Adicionar à Tela de Início.</div></div>
       <div class="setting setting-sheet">
@@ -3124,9 +3153,9 @@ function ics(list,name,color){
       o.push(`DTSTART;VALUE=DATE:${ds}`,`DTEND;VALUE=DATE:${z.toISOString().slice(0,10).replaceAll("-","")}`);
     }
     o.push(`SUMMARY:${esc(e.label)}`,
-           `DESCRIPTION:${esc(disc(e.disc).name+" — "+e.label+(e.time?" ("+e.time+")":""))}`,
+           `DESCRIPTION:${esc(disc(e.disc).name+" — "+e.label+(e.time?" ("+e.time+")":"")+(e.how?"\n\nCOMO SERÁ: "+e.how:"")+(e.preparation?"\n\nCOMO SE PREPARAR: "+e.preparation:"")+(e.attention?"\n\nATENÇÃO: "+e.attention:""))}`,
            "BEGIN:VALARM","ACTION:DISPLAY","TRIGGER:-P5D","DESCRIPTION:Faltam 5 dias","END:VALARM",
-           "BEGIN:VALARM","ACTION:DISPLAY","TRIGGER:-P1D","DESCRIPTION:Falta 1 dia","END:VALARM",
+           "BEGIN:VALARM","ACTION:DISPLAY","TRIGGER:-P2D","DESCRIPTION:Faltam 2 dias","END:VALARM",
            "END:VEVENT");
   });
   o.push("END:VCALENDAR");
@@ -3139,7 +3168,7 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=25",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=26",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     S.defaultDisciplineStyles=Object.fromEntries(

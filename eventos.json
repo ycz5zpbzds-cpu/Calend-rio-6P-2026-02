@@ -4,7 +4,7 @@
     "subtitle": "Turma A · Medicina UFMG · Ciclo Clínico",
     "semesterStart": "2026-08-03",
     "semesterEnd": "2026-12-04",
-    "version": "25.0 Estabilidade e horário corrigidos",
+    "version": "26.0 MED070 A3 integrado",
     "sourceCsv": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1mM31Eev9pdETLKewHKu1z5iUcw76H43yhxT9n5VF93uEm5VXkEAFQ0EGy35qYPOZGukUmxc5eP3M/pub?gid=2145739929&single=true&output=csv",
     "autoRefreshMinutes": 0.5,
     "sheetEditUrl": "https://docs.google.com/spreadsheets/d/1udd_YAqhdfZwbifz5PZaqMH8f4iyc1YhpO9nNeme9gk/edit",
@@ -60,6 +60,12 @@
       "short": "IMA II",
       "color": "#0891B2",
       "icon": "🩻"
+    },
+    "MED070": {
+      "name": "Conferências de Ética e Bioética",
+      "short": "Ética/Bioética",
+      "color": "#0F766E",
+      "icon": "⚖️"
     }
   },
   "events": [
@@ -634,6 +640,93 @@
       "disc": "IMA II",
       "label": "Avaliação 2 (25 pontos)",
       "time": "07:31–09:30"
+    },
+    {
+      "date": "2026-08-12",
+      "end": "2026-08-17",
+      "disc": "MED070",
+      "label": "Avaliação — Pré-teste (5 pontos)",
+      "time": "Moodle · disponível 12/08–17/08 · prazo final 17/08",
+      "activityType": "Questionário reflexivo",
+      "points": "5 pontos",
+      "location": "Moodle",
+      "how": "Responder e enviar o questionário reflexivo no Moodle. A pontuação total é atribuída pelo preenchimento dentro do prazo, independentemente das respostas.",
+      "preparation": "Não exige preparação específica de conteúdo; o essencial é preencher e confirmar o envio.",
+      "attention": "Fica aberto de 12/08 a 17/08 e aparece em todos esses dias no calendário. Não será reaberto após o prazo final."
+    },
+    {
+      "date": "2026-09-02",
+      "disc": "MED070",
+      "label": "Avaliação — Reflexão inicial A3: Mídias sociais e ética (20 pontos)",
+      "time": "18h30–19h30 · Teams · A3 apresenta 18h30–19h; acompanhar A4 19h–19h30",
+      "activityType": "Apresentação e discussão síncrona",
+      "points": "20 pontos",
+      "location": "Microsoft Teams",
+      "how": "Tema da A3: aspectos éticos e bioéticos do emprego de tecnologias de comunicação na relação médico-paciente. A A3 terá até 10 minutos para apresentar, seguida de 20 minutos de discussão. Preferencialmente 1 ou 2 estudantes apresentam, mas todos devem estar preparados para participar, responder perguntas ou substituir colegas. Recomenda-se não utilizar vídeos.",
+      "preparation": "Reunir-se previamente com a A3; estudar questões éticas, políticas públicas atuais e possíveis ações individuais/coletivas; preparar argumentos e respostas; usar referências bibliográficas e adicionais; indicar consenso ou divergências no grupo.",
+      "attention": "É necessário permanecer também para a A4 até 19h30. Mesmo quem não apresentar precisa estar preparado para discutir e responder perguntas."
+    },
+    {
+      "date": "2026-09-02",
+      "end": "2026-09-03",
+      "disc": "MED070",
+      "label": "Avaliação — Documento da reflexão A3 (15 pontos)",
+      "time": "Teams · após a apresentação de 02/09 · prazo final 03/09",
+      "activityType": "Entrega de documento",
+      "points": "15 pontos",
+      "location": "Microsoft Teams",
+      "how": "Compartilhar com a turma o documento da A3 no Teams. O arquivo pode ser a própria apresentação de 02/09 e deve contemplar reflexões/propostas, referências utilizadas e adicionais e registrar consenso ou divergências quando aplicável.",
+      "preparation": "Deixar o material praticamente finalizado antes da apresentação e fazer apenas ajustes finais depois.",
+      "attention": "O período aparece em 02/09 e 03/09. O prazo máximo é um dia após a apresentação."
+    },
+    {
+      "date": "2026-09-05",
+      "disc": "MED070",
+      "label": "Avaliação — Entregar 2 perguntas sobre IA e ética (5 pontos)",
+      "time": "Teams · pasta da Turma A · prazo final 05/09",
+      "activityType": "Atividade em grupo / entrega",
+      "points": "5 pontos",
+      "location": "Microsoft Teams — pasta da Turma A",
+      "how": "Elaborar e postar 2 perguntas sobre aspectos éticos do tema “Inteligência artificial e ética na saúde”. As perguntas serão avaliadas quanto à pertinência e relevância.",
+      "preparation": "Discutir problemas éticos do uso de IA na saúde e formular perguntas capazes de gerar uma discussão relevante na conferência.",
+      "attention": "O programa informa o prazo final de 05/09, mas não informa uma data inicial específica; por isso o evento fica no dia do prazo final."
+    },
+    {
+      "date": "2026-09-09",
+      "disc": "MED070",
+      "label": "Avaliação — Conferência sobre IA e ética (10 pontos)",
+      "time": "18h30–20h30 · Teams",
+      "activityType": "Conferência síncrona — presença avaliativa",
+      "points": "10 pontos",
+      "location": "Microsoft Teams",
+      "how": "Conferência sobre inteligência artificial e ética na saúde, com Profa. Cristiane Dias (Departamento de Pediatria/UFMG) e Dra. Gabriella Reis (CI-IA). Os 10 pontos são associados à presença.",
+      "preparation": "A preparação principal está relacionada às duas perguntas sobre IA e ética entregues anteriormente.",
+      "attention": "Garantir presença durante a conferência, pois a pontuação prevista é por presença."
+    },
+    {
+      "date": "2026-09-23",
+      "disc": "MED070",
+      "label": "Avaliação — Seminário presencial Fishbowl A3 (40 pontos)",
+      "time": "a partir de 18h30 · Faculdade de Medicina/UFMG · Sala 166 · término não informado",
+      "activityType": "Seminário presencial / debate Fishbowl",
+      "points": "40 pontos",
+      "location": "Faculdade de Medicina/UFMG — Sala 166",
+      "how": "Dinâmica Fishbowl com situações éticas sobre mídias sociais e inteligência artificial na saúde. Na 1ª situação A1/A2 debatem e A3/A4 observam; na 2ª, A3/A4 debatem. Na vez da A3/A4 há 10 minutos para discussão inicial e escolha de 4 debatedores (2 da A3 e 2 da A4). Cada fala pode durar até 2 minutos. Participantes do círculo externo podem ocupar a cadeira vazia e entrar no debate. Não é obrigatório que todos falem nem chegar a consenso. Cada debate dura aproximadamente 30–40 minutos.",
+      "preparation": "Preparar argumentação sobre ética e mídias sociais e ética e IA na saúde; treinar identificação de problemas éticos, diferentes perspectivas, justificativa de posições, respostas a argumentos e discussão de condutas.",
+      "attention": "Maior avaliação da disciplina. Critérios: presença, permanência durante todo o seminário, participação, capacidade crítica/reflexiva e interação. O programa não informa previamente os casos nem o horário exato de término."
+    },
+    {
+      "date": "2026-09-30",
+      "end": "2026-10-05",
+      "disc": "MED070",
+      "label": "Avaliação — Pós-teste (5 pontos)",
+      "time": "Moodle · disponível 30/09–05/10 · prazo final 05/10",
+      "activityType": "Questionário reflexivo",
+      "points": "5 pontos",
+      "location": "Moodle",
+      "how": "Responder e enviar o pós-teste no Moodle. A pontuação é atribuída pelo preenchimento dentro do prazo, independentemente das respostas.",
+      "preparation": "Não exige preparação específica; o essencial é responder e confirmar o envio.",
+      "attention": "Fica aberto de 30/09 a 05/10 e aparece em todos esses dias no calendário. Não será reaberto após o prazo final."
     }
   ]
 }
