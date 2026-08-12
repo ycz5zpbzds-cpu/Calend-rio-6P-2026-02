@@ -1,0 +1,158 @@
+name: Calendar stability hotfix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/stability-hotfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-hotfix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply stability fixes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, re
+
+          index_path = Path('index.html')
+          events_path = Path('eventos.json')
+          html = index_path.read_text(encoding='utf-8')
+          data = json.loads(events_path.read_text(encoding='utf-8'))
+
+          # ----- Static fallback data -----
+          data.setdefault('disciplines', {})['IMA II'] = {
+              'name': 'Imagem II',
+              'short': 'IMA II',
+              'color': '#0891B2',
+              'icon': '🩻'
+          }
+          data.setdefault('meta', {})['version'] = '25.0 Estabilidade e horário corrigidos'
+          data['meta']['autoRefreshMinutes'] = 0.5
+
+          ima_events = [
+              {'date':'2026-08-20','end':'2026-08-20','disc':'IMA II','label':'Atividade avaliativa — Cardiorrespiratório 3 (10 pontos)','time':'07:31–09:30'},
+              {'date':'2026-09-17','end':'2026-09-17','disc':'IMA II','label':'Atividade avaliativa — Abdome (10 pontos)','time':'07:31–09:30'},
+              {'date':'2026-09-24','end':'2026-09-24','disc':'IMA II','label':'Avaliação 1 (30 pontos)','time':'07:31–09:30'},
+              {'date':'2026-10-15','end':'2026-10-15','disc':'IMA II','label':'Atividade avaliativa — Neurorradiologia 3 (10 pontos)','time':'07:31–09:30'},
+              {'date':'2026-10-29','end':'2026-10-29','disc':'IMA II','label':'Avaliação 2 (25 pontos)','time':'07:31–09:30'},
+          ]
+          existing = {(e.get('date'), e.get('disc'), e.get('label')) for e in data.get('events', [])}
+          for event in ima_events:
+              key = (event['date'], event['disc'], event['label'])
+              if key not in existing:
+                  data.setdefault('events', []).append(event)
+
+          events_path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          # ----- Cache/version bump -----
+          html = html.replace('· V24 CENTRAL DE ARQUIVOS', '· V25 ESTÁVEL')
+          html = html.replace('24.0 Central de arquivos', '25.0 Estabilidade e horário corrigidos')
+          html = html.replace('v=24', 'v=25')
+          html = html.replace('build=24', 'build=25')
+          html = html.replace('medicinaUFMG_apiSnapshot_v23', 'medicinaUFMG_apiSnapshot_v25')
+
+          # ----- Unknown disciplines must never crash the site -----
+          html = html.replace(
+              'function disc(k){return S.data.disciplines[k]}',
+              'function disc(k){return S.data.disciplines[k]||{name:k,short:k,color:"#64748B",icon:"📚"}}'
+          )
+
+          # ----- Date formatting independent of device timezone -----
+          html = re.sub(
+              r'function d\(s\)\{return new Date\(s\+"T12:00:00"\)\}\nfunction fmt\(s\)\{const x=d\(s\);return `\$\{String\(x\.getDate\(\)\)\.padStart\(2,"0"\)\}/\$\{String\(x\.getMonth\(\)\+1\)\.padStart\(2,"0"\)\}`\}',
+              '''function d(s){\n  const [y,m,day]=String(s||"").split("-").map(Number);\n  return new Date(Date.UTC(y,m-1,day,12,0,0));\n}\nfunction fmt(s){\n  const parts=String(s||"").split("-");\n  if(parts.length!==3)return String(s||"");\n  return `${parts[2].padStart(2,"0")}/${parts[1].padStart(2,"0")}`;\n}''',
+              html,
+              count=1
+          )
+
+          # ----- Heavy weeks use UTC calendar math -----
+          html = re.sub(
+              r'function heavyWeeks\(events\)\{.*?\n\}',
+              '''function heavyWeeks(events){\n  const map={};\n  events.filter(e=>eventKind(e)==="assessment").forEach(e=>{\n    const key0=dateKey(e.date);\n    const day=(new Date(key0).getUTCDay()+6)%7;\n    const key=new Date(key0-day*DAY_MS).toISOString().slice(0,10);\n    (map[key]??=[]).push(e);\n  });\n  return Object.entries(map).sort((a,b)=>b[1].length-a[1].length).slice(0,5);\n}''',
+              html,
+              count=1,
+              flags=re.S
+          )
+
+          # ----- Calendar today marker always uses São Paulo date -----
+          html = html.replace(
+              '    const first=new Date(2026,m,1),count=new Date(2026,m+1,0).getDate();',
+              '    const first=new Date(Date.UTC(2026,m,1)),count=new Date(Date.UTC(2026,m+1,0)).getUTCDate();'
+          )
+          html = html.replace('first.getDay()', 'first.getUTCDay()')
+          html = html.replace(
+              '      const t=new Date();\n      cells+=`<div class="day ${es.some(e=>e.end)?"range":""} ${t.getFullYear()===2026&&t.getMonth()===m&&t.getDate()===n?"today":""}"',
+              '      const t=saoPauloTodayParts();\n      cells+=`<div class="day ${es.some(e=>e.end)?"range":""} ${t.year===2026&&t.month===m+1&&t.day===n?"today":""}"'
+          )
+          html = html.replace(
+              'const list=S.data.events.filter(visible).filter(e=>d(e.date).getMonth()===m)',
+              'const list=S.data.events.filter(visible).filter(e=>Number(e.date.slice(5,7))===m+1)'
+          )
+
+          # ----- Week view fixed to São Paulo, not device timezone -----
+          html = re.sub(
+              r'function startOfWeek\(\)\{.*?\n\}\nfunction weekView\(\)\{.*?\n\}',
+              '''function startOfWeek(){\n  const p=saoPauloTodayParts();\n  const today=Date.UTC(p.year,p.month-1,p.day);\n  const day=(new Date(today).getUTCDay()+6)%7;\n  return today-day*DAY_MS+S.weekOffset*7*DAY_MS;\n}\nfunction weekView(){\n  const start=startOfWeek();\n  const dates=[...Array(7)].map((_,i)=>new Date(start+i*DAY_MS));\n  const today=todayKey();\n  $("#week").innerHTML=`\n    <div class="controls">\n      <button id="prevWeek" class="ctrl btn">← Semana anterior</button>\n      <button id="todayWeek" class="ctrl btn">Hoje</button>\n      <button id="nextWeek" class="ctrl btn">Próxima semana →</button>\n    </div>\n    <div class="week-board">${dates.map(x=>{\n      const iso=`${x.getUTCFullYear()}-${String(x.getUTCMonth()+1).padStart(2,"0")}-${String(x.getUTCDate()).padStart(2,"0")}`;\n      const es=S.data.events.filter(visible).filter(e=>days(e).includes(iso));\n      return `<div class="week-column ${dateKey(iso)===today?"today":""}">\n        <div class="week-column-head">${["dom","seg","ter","qua","qui","sex","sáb"][x.getUTCDay()]}<small>${fmt(iso)}</small></div>\n        ${es.length?es.map(e=>`<div class="week-event" data-day="${iso}" style="background:${disc(e.disc).color}">\n          <b>${disc(e.disc).short}</b><br>${e.label}\n        </div>`).join(""):"<div class='week-empty'>Sem eventos</div>"}\n      </div>`;\n    }).join("")}</div>`;\n}''',
+              html,
+              count=1,
+              flags=re.S
+          )
+
+          # ----- Background synchronization without flicker/rebuilding the whole DOM -----
+          stable_bootstrap = '''function eventDataSignature(events){\n  return JSON.stringify((events||[]).map(e=>[\n    e.id||"",e.date||"",e.end||"",e.disc||"",e.label||"",e.time||""\n  ]));\n}\n\nasync function bootstrapGlobal(silent=false){\n  const previousSignature=eventDataSignature(S.data?.events||[]);\n  const previousRevision=String(S.api?.configRevision||"");\n  const hadConnection=S.api?.status==="ok";\n\n  if(!silent){\n    S.api={...S.api,status:"loading",message:"Sincronizando…"};\n    renderSyncStatus();\n  }\n\n  let lastError=null;\n\n  for(let attempt=1;attempt<=3;attempt++){\n    try{\n      const data=await apiRequest("bootstrap");\n      const apiVersion=assertCurrentApiVersion(data);\n      const nextEvents=prepareEvents(data.events||[],false);\n      const nextSignature=eventDataSignature(nextEvents);\n      const nextRevision=String(data.configRevision||"");\n      const eventsChanged=nextSignature!==previousSignature;\n      const configChanged=nextRevision!==previousRevision;\n      const now=new Date();\n\n      S.data.events=nextEvents;\n      if(configChanged||!hadConnection)applyGlobalConfig(data.config||{});\n      saveApiSnapshot(data);\n\n      S.sync={status:"ok",message:"Sincronização global ativa",updatedAt:now,remoteCount:nextEvents.length};\n      S.api={status:"ok",message:"Sincronização global ativa",updatedAt:now,version:apiVersion,configRevision:nextRevision};\n\n      if(eventsChanged||configChanged||!hadConnection||!silent){\n        render();\n      }else{\n        renderCountdown();\n        renderSyncStatus();\n      }\n\n      if(!silent)toast("Dados sincronizados em todos os dispositivos.");\n      return true;\n    }catch(error){\n      lastError=error;\n      if(attempt<3)await wait(attempt*900);\n    }\n  }\n\n  S.api={...S.api,status:"error",message:lastError?.message||"Não foi possível conectar agora."};\n  S.sync={...S.sync,status:"error",message:"Mantendo a última cópia válida"};\n  renderSyncStatus();\n  if(!silent)toast(`${S.api.message} Mantive a última cópia disponível.`);\n  return false;\n}\n'''
+          html = re.sub(
+              r'async function bootstrapGlobal\(silent=false\)\{.*?\n\}\n\nasync function refreshCurrentSource',
+              stable_bootstrap + '\nasync function refreshCurrentSource',
+              html,
+              count=1,
+              flags=re.S
+          )
+
+          # ----- Never flash a stale snapshot before the live API -----
+          html = html.replace('    if(loadApiSnapshot())render();\n    await bootstrapGlobal(true);', '    await bootstrapGlobal(true);')
+
+          # ----- Refresh less aggressively; still updates quickly when returning to the tab -----
+          html = html.replace('    const refreshSeconds=15;', '    const refreshSeconds=30;')
+
+          # Settings text
+          html = html.replace(
+              'As mudanças chegam aos aparelhos ao abrir o site e, enquanto ele estiver aberto, em até 15 segundos.',
+              'As mudanças chegam aos aparelhos ao abrir o site e, enquanto ele estiver aberto, em até 30 segundos, sem recarregar a tela quando nada mudou.'
+          )
+
+          index_path.write_text(html, encoding='utf-8')
+          PY
+
+      - name: Validate JavaScript and JSON
+        shell: bash
+        run: |
+          python3 -m json.tool eventos.json >/dev/null
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html=Path('index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script>(.*?)</script>',html,re.S)
+          Path('/tmp/calendar.js').write_text('\n'.join(scripts),encoding='utf-8')
+          PY
+          node --check /tmp/calendar.js
+
+      - name: Commit fixed site
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html eventos.json
+          if git diff --cached --quiet; then
+            echo 'No changes needed.'
+            exit 0
+          fi
+          git commit -m 'Corrige estabilidade, datas e sincronização do calendário'
+          git push
