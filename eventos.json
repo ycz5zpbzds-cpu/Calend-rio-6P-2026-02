@@ -4,9 +4,9 @@
     "subtitle": "Turma A · Medicina UFMG · Ciclo Clínico",
     "semesterStart": "2026-08-03",
     "semesterEnd": "2026-12-04",
-    "version": "24.0 Central de arquivos",
+    "version": "25.0 Estabilidade e horário corrigidos",
     "sourceCsv": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1mM31Eev9pdETLKewHKu1z5iUcw76H43yhxT9n5VF93uEm5VXkEAFQ0EGy35qYPOZGukUmxc5eP3M/pub?gid=2145739929&single=true&output=csv",
-    "autoRefreshMinutes": 0.25,
+    "autoRefreshMinutes": 0.5,
     "sheetEditUrl": "https://docs.google.com/spreadsheets/d/1udd_YAqhdfZwbifz5PZaqMH8f4iyc1YhpO9nNeme9gk/edit",
     "sheetDriveUrl": "https://drive.google.com/file/d/1VWK2pDkzfKLy0fiy8dDKvzDdwZrlj8Jk",
     "sheetPublicUrl": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1mM31Eev9pdETLKewHKu1z5iUcw76H43yhxT9n5VF93uEm5VXkEAFQ0EGy35qYPOZGukUmxc5eP3M/pubhtml?gid=2145739929&single=true",
@@ -54,6 +54,12 @@
       "short": "Semana de provas",
       "color": "#94A3B8",
       "icon": "📅"
+    },
+    "IMA II": {
+      "name": "Imagem II",
+      "short": "IMA II",
+      "color": "#0891B2",
+      "icon": "🩻"
     }
   },
   "events": [
@@ -593,6 +599,41 @@
       "disc": "CLM",
       "label": "Semana de provas finais (sem atendimento)",
       "time": "base 2025 · a confirmar"
+    },
+    {
+      "date": "2026-08-20",
+      "end": "2026-08-20",
+      "disc": "IMA II",
+      "label": "Atividade avaliativa — Cardiorrespiratório 3 (10 pontos)",
+      "time": "07:31–09:30"
+    },
+    {
+      "date": "2026-09-17",
+      "end": "2026-09-17",
+      "disc": "IMA II",
+      "label": "Atividade avaliativa — Abdome (10 pontos)",
+      "time": "07:31–09:30"
+    },
+    {
+      "date": "2026-09-24",
+      "end": "2026-09-24",
+      "disc": "IMA II",
+      "label": "Avaliação 1 (30 pontos)",
+      "time": "07:31–09:30"
+    },
+    {
+      "date": "2026-10-15",
+      "end": "2026-10-15",
+      "disc": "IMA II",
+      "label": "Atividade avaliativa — Neurorradiologia 3 (10 pontos)",
+      "time": "07:31–09:30"
+    },
+    {
+      "date": "2026-10-29",
+      "end": "2026-10-29",
+      "disc": "IMA II",
+      "label": "Avaliação 2 (25 pontos)",
+      "time": "07:31–09:30"
     }
   ]
 }

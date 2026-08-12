@@ -10,9 +10,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=24">
-  <link id="appFavicon" rel="icon" href="./icon.svg?v=24" type="image/svg+xml">
-  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=24">
+  <link id="appManifest" rel="manifest" href="./manifest.webmanifest?v=25">
+  <link id="appFavicon" rel="icon" href="./icon.svg?v=25" type="image/svg+xml">
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="./icon.svg?v=25">
   <title>Calendário Medicina UFMG — 6º Período — 2026/2</title>
   <style>
 :root{
@@ -1022,20 +1022,20 @@ const S={
   sync:{status:"loading",message:"Carregando planilha…",updatedAt:null,remoteCount:0},
   api:{status:"loading",message:"Conectando automaticamente…",updatedAt:null,version:"",configRevision:""},
   defaultDisciplineStyles:{},
-  appIcon:{url:"./icon.svg?v=24",updatedAt:"",custom:false}
+  appIcon:{url:"./icon.svg?v=25",updatedAt:"",custom:false}
 };
 
 const DISC_STYLE_KEY="medicinaUFMG_discStyles_v1";
 
 const CHART_STYLE_KEY="medicinaUFMG_chartStyles_v1";
 const EVENT_EDIT_KEY="medicinaUFMG_eventEdits_v1";
-const DEFAULT_APP_ICON="./icon.svg?v=24";
+const DEFAULT_APP_ICON="./icon.svg?v=25";
 let dynamicManifestUrl="";
 let pendingAppIconDataUrl="";
 let styleSaveTimer=null;
 const pendingGlobalStyleItems=new Map();
 const REQUIRED_API_VERSION="20";
-const API_SNAPSHOT_KEY="medicinaUFMG_apiSnapshot_v23";
+const API_SNAPSHOT_KEY="medicinaUFMG_apiSnapshot_v25";
 
 const DEFAULT_CHART_STYLES={
   completed:"#10b981",
@@ -1225,7 +1225,7 @@ function updateDynamicManifest(iconUrl){
   const manifest={
     name:"Calendário Medicina UFMG — 6º Período — 2026/2",
     short_name:"Medicina UFMG",
-    start_url:"./?build=24",
+    start_url:"./?build=25",
     scope:"./",
     display:"standalone",
     background_color:"#F4F2EC",
@@ -1270,7 +1270,7 @@ function applyAppIcon(siteConfig={}){
       URL.revokeObjectURL(dynamicManifestUrl);
       dynamicManifestUrl="";
     }
-    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=24");
+    ensureHeadLink("appManifest","manifest","./manifest.webmanifest?v=25");
   }
 
   document.querySelectorAll("[data-app-icon-preview]").forEach(image=>{
@@ -1369,13 +1369,21 @@ function loadApiSnapshot(){
   }
 }
 
+function eventDataSignature(events){
+  return JSON.stringify((events||[]).map(e=>[
+    e.id||"",e.date||"",e.end||"",e.disc||"",e.label||"",e.time||""
+  ]));
+}
+
 async function bootstrapGlobal(silent=false){
-  S.api={
-    status:"loading",
-    message:"Conectando automaticamente…",
-    updatedAt:S.api.updatedAt||null
-  };
-  render();
+  const previousSignature=eventDataSignature(S.data?.events||[]);
+  const previousRevision=String(S.api?.configRevision||"");
+  const hadConnection=S.api?.status==="ok";
+
+  if(!silent){
+    S.api={...S.api,status:"loading",message:"Sincronizando…"};
+    renderSyncStatus();
+  }
 
   let lastError=null;
 
@@ -1383,48 +1391,39 @@ async function bootstrapGlobal(silent=false){
     try{
       const data=await apiRequest("bootstrap");
       const apiVersion=assertCurrentApiVersion(data);
-      applyGlobalConfig(data.config||{});
-      S.data.events=prepareEvents(data.events||[],false);
-      saveApiSnapshot(data);
+      const nextEvents=prepareEvents(data.events||[],false);
+      const nextSignature=eventDataSignature(nextEvents);
+      const nextRevision=String(data.configRevision||"");
+      const eventsChanged=nextSignature!==previousSignature;
+      const configChanged=nextRevision!==previousRevision;
       const now=new Date();
 
-      S.sync={
-        status:"ok",
-        message:"Sincronização global ativa",
-        updatedAt:now,
-        remoteCount:S.data.events.length
-      };
+      S.data.events=nextEvents;
+      if(configChanged||!hadConnection)applyGlobalConfig(data.config||{});
+      saveApiSnapshot(data);
 
-      S.api={
-        status:"ok",
-        message:"Sincronização global ativa",
-        updatedAt:now,
-        version:apiVersion,
-        configRevision:String(data.configRevision||"")
-      };
+      S.sync={status:"ok",message:"Sincronização global ativa",updatedAt:now,remoteCount:nextEvents.length};
+      S.api={status:"ok",message:"Sincronização global ativa",updatedAt:now,version:apiVersion,configRevision:nextRevision};
 
-      render();
+      if(eventsChanged||configChanged||!hadConnection||!silent){
+        render();
+      }else{
+        renderCountdown();
+        renderSyncStatus();
+      }
 
       if(!silent)toast("Dados sincronizados em todos os dispositivos.");
       return true;
     }catch(error){
       lastError=error;
-      if(attempt<3)await wait(attempt*1000);
+      if(attempt<3)await wait(attempt*900);
     }
   }
 
-  S.api={
-    status:"error",
-    message:lastError?.message||"Não foi possível conectar agora.",
-    updatedAt:null
-  };
-
-  render();
-
-  if(!silent){
-    toast(`${S.api.message} Mantive a última cópia disponível.`);
-  }
-
+  S.api={...S.api,status:"error",message:lastError?.message||"Não foi possível conectar agora."};
+  S.sync={...S.sync,status:"error",message:"Mantendo a última cópia válida"};
+  renderSyncStatus();
+  if(!silent)toast(`${S.api.message} Mantive a última cópia disponível.`);
   return false;
 }
 
@@ -1809,8 +1808,15 @@ const TYPE_META={
   class:{name:"Aulas / ATs",color:"#ea580c"}
 };
 
-function d(s){return new Date(s+"T12:00:00")}
-function fmt(s){const x=d(s);return `${String(x.getDate()).padStart(2,"0")}/${String(x.getMonth()+1).padStart(2,"0")}`}
+function d(s){
+  const [y,m,day]=String(s||"").split("-").map(Number);
+  return new Date(Date.UTC(y,m-1,day,12,0,0));
+}
+function fmt(s){
+  const parts=String(s||"").split("-");
+  if(parts.length!==3)return String(s||"");
+  return `${parts[2].padStart(2,"0")}/${parts[1].padStart(2,"0")}`;
+}
 function dateKey(s){const [y,m,day]=s.split("-").map(Number);return Date.UTC(y,m-1,day)}
 
 function saoPauloTodayParts(){
@@ -1842,7 +1848,7 @@ function isPast(e){return endKey(e)<todayKey()}
 function isCurrent(e){return dateKey(e.date)<=todayKey()&&endKey(e)>=todayKey()}
 function end(e){return d(e.end||e.date)}
 function id(e){return `${e.disc}|${e.date}|${e.label}`}
-function disc(k){return S.data.disciplines[k]}
+function disc(k){return S.data.disciplines[k]||{name:k,short:k,color:"#64748B",icon:"📚"}}
 
 function isUnconfirmed(e){
   return /a confirmar|base 2025|data provável|não publicado|checar c\/ coordenação/i.test(e.label+" "+(e.time||""));
@@ -2268,7 +2274,7 @@ function shell(){
             </div>
             <div class="eyebrow">${S.data.meta.subtitle}</div>
             <h1>${S.data.meta.title}</h1>
-            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V24 CENTRAL DE ARQUIVOS</div>
+            <div class="sub">Dashboard com gráficos, contagens precisas, calendário, semana, agenda e exportação para iPhone · V25 ESTÁVEL</div>
           </div>
         </div>
         <div id="countdown" class="countdown"></div>
@@ -2352,9 +2358,9 @@ function rows(list){return list.length?`<div class="timeline">${list.map(row).jo
 function heavyWeeks(events){
   const map={};
   events.filter(e=>eventKind(e)==="assessment").forEach(e=>{
-    const x=d(e.date),day=(x.getDay()+6)%7;
-    x.setDate(x.getDate()-day);
-    const key=x.toISOString().slice(0,10);
+    const key0=dateKey(e.date);
+    const day=(new Date(key0).getUTCDay()+6)%7;
+    const key=new Date(key0-day*DAY_MS).toISOString().slice(0,10);
     (map[key]??=[]).push(e);
   });
   return Object.entries(map).sort((a,b)=>b[1].length-a[1].length).slice(0,5);
@@ -2560,19 +2566,19 @@ function dashboard(){
 
 function calendar(){
   const months=[7,8,9,10,11].map(m=>{
-    const first=new Date(2026,m,1),count=new Date(2026,m+1,0).getDate();
-    let cells="<div></div>".repeat(first.getDay());
+    const first=new Date(Date.UTC(2026,m,1)),count=new Date(Date.UTC(2026,m+1,0)).getUTCDate();
+    let cells="<div></div>".repeat(first.getUTCDay());
     for(let n=1;n<=count;n++){
       const iso=`2026-${String(m+1).padStart(2,"0")}-${String(n).padStart(2,"0")}`;
       const es=S.data.events.filter(visible).filter(e=>days(e).includes(iso));
-      const t=new Date();
-      cells+=`<div class="day ${es.some(e=>e.end)?"range":""} ${t.getFullYear()===2026&&t.getMonth()===m&&t.getDate()===n?"today":""}"
+      const t=saoPauloTodayParts();
+      cells+=`<div class="day ${es.some(e=>e.end)?"range":""} ${t.year===2026&&t.month===m+1&&t.day===n?"today":""}"
           data-day="${iso}" title="${es.map(e=>disc(e.disc).name+" — "+e.label).join("\n")}">
         <div class="num">${n}</div>
         <div class="marks">${[...new Set(es.map(e=>e.disc))].map(k=>`<span class="mark" style="background:${disc(k).color}"></span>`).join("")}</div>
       </div>`;
     }
-    const list=S.data.events.filter(visible).filter(e=>d(e.date).getMonth()===m).sort((a,b)=>dateKey(a.date)-dateKey(b.date));
+    const list=S.data.events.filter(visible).filter(e=>Number(e.date.slice(5,7))===m+1).sort((a,b)=>dateKey(a.date)-dateKey(b.date));
     return `<div class="month">
       <div class="mhead"><span>${MONTHS[m].toUpperCase()}</span><span>2026</span></div>
       <div class="week">${WD.map(x=>`<div>${x}</div>`).join("")}</div>
@@ -2590,14 +2596,14 @@ function calendar(){
 }
 
 function startOfWeek(){
-  const x=new Date();x.setHours(12,0,0,0);
-  const day=(x.getDay()+6)%7;
-  x.setDate(x.getDate()-day+S.weekOffset*7);
-  return x;
+  const p=saoPauloTodayParts();
+  const today=Date.UTC(p.year,p.month-1,p.day);
+  const day=(new Date(today).getUTCDay()+6)%7;
+  return today-day*DAY_MS+S.weekOffset*7*DAY_MS;
 }
 function weekView(){
   const start=startOfWeek();
-  const dates=[...Array(7)].map((_,i)=>{const x=new Date(start);x.setDate(x.getDate()+i);return x});
+  const dates=[...Array(7)].map((_,i)=>new Date(start+i*DAY_MS));
   const today=todayKey();
   $("#week").innerHTML=`
     <div class="controls">
@@ -2606,10 +2612,10 @@ function weekView(){
       <button id="nextWeek" class="ctrl btn">Próxima semana →</button>
     </div>
     <div class="week-board">${dates.map(x=>{
-      const iso=`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`;
+      const iso=`${x.getUTCFullYear()}-${String(x.getUTCMonth()+1).padStart(2,"0")}-${String(x.getUTCDate()).padStart(2,"0")}`;
       const es=S.data.events.filter(visible).filter(e=>days(e).includes(iso));
       return `<div class="week-column ${dateKey(iso)===today?"today":""}">
-        <div class="week-column-head">${["dom","seg","ter","qua","qui","sex","sáb"][x.getDay()]}<small>${fmt(iso)}</small></div>
+        <div class="week-column-head">${["dom","seg","ter","qua","qui","sex","sáb"][x.getUTCDay()]}<small>${fmt(iso)}</small></div>
         ${es.length?es.map(e=>`<div class="week-event" data-day="${iso}" style="background:${disc(e.disc).color}">
           <b>${disc(e.disc).short}</b><br>${e.label}
         </div>`).join(""):"<div class='week-empty'>Sem eventos</div>"}
@@ -2811,7 +2817,7 @@ function settings(){
         <div class="api-heading">
           <div>
             <b>🌐 Sincronização automática em todos os dispositivos</b>
-            <div class="label">Não é necessário inserir chave. As mudanças chegam aos aparelhos ao abrir o site e, enquanto ele estiver aberto, em até 15 segundos.</div>
+            <div class="label">Não é necessário inserir chave. As mudanças chegam aos aparelhos ao abrir o site e, enquanto ele estiver aberto, em até 30 segundos, sem recarregar a tela quando nada mudou.</div>
           </div>
           <div class="api-status">${apiStatusLabel()}</div>
         </div>
@@ -3133,7 +3139,7 @@ function download(n,t){
 
 document.addEventListener("DOMContentLoaded",async()=>{
   try{
-    const response=await fetch("./eventos.json?v=24",{cache:"no-store"});
+    const response=await fetch("./eventos.json?v=25",{cache:"no-store"});
     const x=await response.json();
     S.data=x;
     S.defaultDisciplineStyles=Object.fromEntries(
@@ -3157,11 +3163,10 @@ document.addEventListener("DOMContentLoaded",async()=>{
       Enquanto a API responde, mostramos a última cópia da própria API,
       nunca o CSV publicado, para o evento não ficar alternando.
     */
-    if(loadApiSnapshot())render();
     await bootstrapGlobal(true);
 
     setInterval(renderCountdown,1000);
-    const refreshSeconds=15;
+    const refreshSeconds=30;
     setInterval(()=>{
       if(!pendingGlobalStyleItems.size)refreshCurrentSource(true);
     },refreshSeconds*1000);
